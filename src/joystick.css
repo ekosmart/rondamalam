@@ -1,0 +1,19 @@
+#move-joystick {
+  position: relative; display: grid; place-items: center; width: 128px; height: 128px;
+  border: 1px solid #d9d7ac66; border-radius: 50%; touch-action: none; user-select: none;
+  background: radial-gradient(circle, #112e3066 0 42%, #203d3d77 43% 100%);
+  box-shadow: inset 0 0 22px #061a2355; pointer-events: auto;
+}
+#move-joystick::before { content: ''; position: absolute; inset: 21px; border: 1px dashed #e2dab944; border-radius: 50%; }
+#move-joystick .joystick-knob {
+  display: block; width: 46px; height: 46px; border-radius: 50%; border: 1px solid #e3d496aa;
+  background: radial-gradient(circle at 35% 30%, #d6ce99aa, #7c9475bb);
+  transform: translate(var(--stick-x, 0px), var(--stick-y, 0px)); pointer-events: none;
+  box-shadow: 0 3px 12px #061b2266;
+}
+#move-joystick.engaged { border-color: #edce82; }
+#move-joystick .joystick-label { position: absolute; bottom: 5px; font-size: 8px; letter-spacing: 2px; pointer-events: none; color: #e3dfbb; }
+@media (max-width: 900px), (pointer: coarse) {
+  #hud .mobile-pad { display: block; position: fixed; left: max(16px, env(safe-area-inset-left)); bottom: max(28px, env(safe-area-inset-bottom)); width: 128px; height: 128px; padding: 0; background: none; pointer-events: none; }
+  #hud .mobile-pad > button { pointer-events: auto; position: fixed; right: max(20px, env(safe-area-inset-right)); bottom: 174px; width: 44px; height: 44px; }
+}

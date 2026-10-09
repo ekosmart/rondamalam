@@ -1,0 +1,26 @@
+{
+  "version": "1.4.0",
+  "build": "passed",
+  "checks": {
+    "unit": 34,
+    "base_browser": 27,
+    "expansion_browser": 36,
+    "incidents_browser": 27,
+    "rural_browser": 18,
+    "frontier_browser": 26,
+    "frontier_extra_browser": 10,
+    "pwa_browser": 14
+  },
+  "total": 192,
+  "coverage": [
+    "Kopdes transactions and fishing timing",
+    "animated water and road clearance",
+    "family interior, storage and legacy saves",
+    "Sembrani mounted weapon attacks",
+    "alien capture, Division Z navigation, rocket unlock",
+    "all three space samples, flight collision and return",
+    "meteor waves, T-Rex, victims and dawn recovery",
+    "five dinosaur species, taming, collection and GyroBall",
+    "landscape touch and offline PWA update"
+  ]
+}

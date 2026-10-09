@@ -1,0 +1,248 @@
+/* Landscape phones need the same touch controls as narrow portrait screens. */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 620px) {
+  .title-content {
+    top: 51%;
+  }
+  .title-content h1 {
+    font-size: 62px;
+    margin: 10px 0;
+  }
+  .title-stroke {
+    left: 208px;
+  }
+  .title-sub {
+    margin: 8px 0;
+  }
+  .intro-copy {
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .title-note,
+  .scene-caption,
+  .menu-footer,
+  .edition {
+    display: none;
+  }
+  .menu-header {
+    top: 14px;
+  }
+  .title-actions {
+    gap: 14px;
+  }
+  .hud-top {
+    top: 10px;
+    left: 14px;
+    right: 14px;
+    padding-top: 0;
+  }
+  .game-brand,
+  .quest-hud,
+  #first-tip,
+  #village-alert,
+  #area-banner,
+  .control-footer,
+  #safe-badge,
+  .bottom-left h4,
+  .skills-note,
+  .security-line,
+  .meter.security,
+  #kliwon-label {
+    display: none !important;
+  }
+  .top-actions {
+    margin-left: auto;
+  }
+  .top-actions .icon-button {
+    width: 34px;
+    height: 32px;
+  }
+  .compass {
+    top: 0;
+    font-size: 10px;
+  }
+  .compass small {
+    font-size: 7px;
+  }
+  .player-card,
+  .incident-running .player-card {
+    top: 12px;
+    left: 14px;
+    width: 188px;
+  }
+  .player-card .avatar {
+    width: 35px;
+    height: 40px;
+  }
+  .player-card .avatar svg {
+    width: 20px;
+  }
+  .player-vitals {
+    width: 142px;
+  }
+  .name-row,
+  .vitals-bottom {
+    font-size: 10px;
+  }
+  .map-hud,
+  .incident-running .map-hud {
+    top: 52px;
+    right: 14px;
+    width: 88px;
+  }
+  .minimap-button,
+  .incident-running .minimap-button {
+    width: 88px;
+    height: 88px;
+  }
+  .map-hud .time-row strong,
+  .incident-running .map-hud .time-row strong {
+    font-size: 18px;
+  }
+  .time-row {
+    margin-bottom: 6px;
+  }
+  .time-row > span {
+    display: none;
+  }
+  #target-hud,
+  .incident-running #target-hud {
+    top: 72px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 174px;
+  }
+  #target-hud strong {
+    font-size: 18px;
+  }
+  #target-category {
+    font-size: 7px;
+  }
+  #target-status {
+    font-size: 9px;
+  }
+  #incident-hud {
+    top: 79px;
+    left: 14px;
+    width: 174px;
+  }
+  .mobile-pad,
+  .activity-running .mobile-pad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    left: max(14px, env(safe-area-inset-left));
+    bottom: max(18px, env(safe-area-inset-bottom));
+    gap: 3px;
+  }
+  .mobile-pad button,
+  .activity-running .mobile-pad button {
+    width: 38px;
+    height: 36px;
+    border: 1px solid #b8c59266;
+    border-radius: 5px;
+    background: #223e29bb;
+    font-size: 18px;
+  }
+  .mobile-pad > div {
+    display: flex;
+    gap: 3px;
+  }
+  .mobile-pad > button:last-child {
+    position: fixed;
+    right: max(18px, env(safe-area-inset-right));
+    bottom: 120px;
+    width: 42px;
+    height: 40px;
+  }
+  .bottom-left,
+  .incident-running .bottom-left {
+    left: auto;
+    right: 143px;
+    bottom: 20px;
+  }
+  .weapon-tray {
+    gap: 4px;
+  }
+  .equipment,
+  .incident-running .equipment {
+    width: 42px;
+    height: 45px;
+  }
+  .equipment svg,
+  .incident-running .equipment > svg {
+    width: 21px;
+  }
+  .equipment i {
+    font-size: 7px;
+  }
+  .skills {
+    right: 15px;
+    bottom: 20px;
+    gap: 9px;
+  }
+  .skill-button {
+    width: 45px;
+    height: 45px;
+  }
+  .skill-button span {
+    font-size: 8px;
+  }
+  #mount-status,
+  .incident-running #mount-status {
+    left: 50%;
+    bottom: 83px;
+    width: 230px;
+    min-width: 0;
+    padding: 6px 8px;
+    transform: translateX(-50%);
+  }
+  #mount-status b {
+    font-size: 10px;
+  }
+  #mount-status span {
+    display: none;
+  }
+  #mount-status button,
+  .incident-running #mount-status button {
+    min-height: 32px;
+    font-size: 10px;
+    padding: 4px 8px;
+    margin-top: 4px;
+  }
+  #interaction {
+    bottom: 171px;
+  }
+  #interaction small {
+    display: none;
+  }
+  #interaction strong {
+    font-size: 11px;
+  }
+  #toast {
+    bottom: 226px;
+    font-size: 10px;
+    padding: 8px 12px;
+    max-width: 310px;
+  }
+  #waypoint-hud {
+    top: 139px;
+  }
+  .panel {
+    max-height: calc(100dvh - 16px);
+    width: min(720px, calc(100vw - 24px));
+  }
+  .panel-header {
+    padding: 12px 20px;
+  }
+  .panel-header h2 {
+    font-size: 26px;
+  }
+  .panel-content {
+    padding: 14px 20px;
+  }
+  .panel-footer {
+    padding: 9px 20px;
+  }
+}

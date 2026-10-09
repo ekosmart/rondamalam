@@ -1,0 +1,43 @@
+{
+  "version": "1.5.0",
+  "build": "passed",
+  "checks": {
+    "unit": 41,
+    "base_browser": 27,
+    "expansion_browser": 36,
+    "incidents_browser": 27,
+    "rural_browser": 18,
+    "frontier_browser": 26,
+    "frontier_extra_browser": 10,
+    "weather_fishing_browser": 22,
+    "pwa_browser": 15
+  },
+  "total": 222,
+  "weather_fishing_checks": [
+    "all eleven weather types render and preserve the invasion plan",
+    "ground player, enemies, NPCs and livestock slow down in flood; flight does not",
+    "flood covers roads, animates blue water and allows fishing everywhere without blocking NPC talk",
+    "snow leaves bounded footprints and reduces walking speed",
+    "lightning damages ghost, zombie, alien, UFO and dinosaur during an ongoing invasion",
+    "petir ignites houses, buildings and trees; fires continue damaging houses and can be extinguished",
+    "lightning burns citizens and livestock; injured victims can be rescued with E",
+    "player takes electrical damage even on magic-proof mecha; pos ronda stays safe",
+    "tornado pursues residents and houses, pulls victims and destroys houses without replacing an invasion",
+    "dawn rebuilds weather-damaged houses and restores injured residents and animals",
+    "angler NPC offers playable quest and one-time bait gift",
+    "six real casts consume bait, store fish weights, and show held fish and raised arms",
+    "turning in quest equips Joran Tirta and prevents repeated rewards",
+    "legendary catch works after all five night posts and is recorded in the journal",
+    "catch voice is real playable bundled Indonesian audio and obeys mute",
+    "catch presentation expires and restores equipped weapon",
+    "fish reel touch button remains the same DOM node during updates",
+    "weather HUD stays above the central play area on mobile landscape",
+    "save reload preserves weather cycle, fishing records and upgraded rod",
+    "main game loop runs every weather alongside a live zombie invasion",
+    "actual landscape touch reel catches fish during flood",
+    "no browser errors"
+  ],
+  "offline_audio": "passed: cached WAV decoded while network offline",
+  "save_compatibility": "legacy inventory and progression preserved",
+  "service_worker_cache": "ronda-static-3710db27ca41da26"
+}

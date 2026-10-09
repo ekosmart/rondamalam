@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Ronda Malam — Shift Kliwon",
+  "short_name": "Ronda Malam",
+  "description": "RPG horor Nusantara 3D. Jaga Sukarame, rawat ternak dan jelajahi malam.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#131b19",
+  "theme_color": "#131b19",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {"src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

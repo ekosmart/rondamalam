@@ -1,0 +1,146 @@
+#fishing-hud {
+  position: absolute;
+  left: 26px;
+  bottom: 155px;
+  width: 240px;
+  padding: 14px;
+  background: #142e32e8;
+  border: 1px solid #8bb9b0;
+  color: #dbe7d4;
+  pointer-events: auto;
+  border-radius: 8px;
+}
+#fishing-hud small,
+#fishing-hud strong,
+#fishing-hud span {
+  display: block;
+  margin-bottom: 7px;
+}
+#fishing-hud strong {
+  font-size: 20px;
+  color: #c6e4c7;
+}
+#fishing-hud button {
+  margin: 4px 5px 0 0;
+}
+.frontier-lead {
+  color: #b9cabc;
+  line-height: 1.6;
+}
+.frontier-shop article {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 17px 0;
+  border-bottom: 1px solid #a8bba329;
+}
+.frontier-shop article h3 {
+  margin: 0 0 7px;
+}
+.frontier-shop article p {
+  font-size: 14px;
+  max-width: 370px;
+  margin: 0 0 7px;
+  color: #aebdae;
+}
+.frontier-shop article > div:last-child {
+  max-width: 275px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.frontier-shop small {
+  color: #dbca95;
+}
+.inside-scene
+  #hud
+  > :not(#expedition-hud):not(.top-actions):not(.mobile-pad):not(#toast) {
+  display: none !important;
+}
+#expedition-hud {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(960px, 96vw);
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 13px 18px;
+  border-radius: 9px;
+  background: #0e2533dd;
+  border: 1px solid #7ca1ac60;
+  color: #dce6d6;
+  pointer-events: auto;
+}
+#expedition-hud small,
+#expedition-hud strong,
+#expedition-hud span {
+  display: block;
+}
+#expedition-hud small {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #a7cbd2;
+}
+#expedition-hud strong {
+  font-size: 18px;
+  margin: 5px 0;
+  white-space: nowrap;
+}
+#expedition-hud span {
+  font-size: 11px;
+  color: #a8bfc1;
+}
+#expedition-hud nav,
+#expedition-hud > div:last-child {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+#expedition-hud button {
+  font-size: 11px;
+  padding: 7px 9px;
+}
+.inside-scene .mobile-pad {
+  z-index: 8;
+}
+.inside-scene #target-hud {
+  display: none !important;
+}
+#expedition-hud.hidden {
+  display: none;
+}
+@media (max-width: 850px) {
+  #expedition-hud {
+    top: 8px;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  #expedition-hud strong {
+    font-size: 13px;
+  }
+  #expedition-hud span {
+    max-width: 190px;
+  }
+  #expedition-hud nav {
+    max-width: 160px;
+  }
+  #fishing-hud {
+    left: 145px;
+    bottom: 20px;
+    width: 220px;
+    font-size: 11px;
+    padding: 8px;
+  }
+  #fishing-hud strong {
+    font-size: 15px;
+  }
+  .frontier-shop article {
+    gap: 10px;
+  }
+  .frontier-shop article > div:last-child {
+    min-width: 150px;
+  }
+}

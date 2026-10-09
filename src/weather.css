@@ -1,0 +1,114 @@
+#weather-hud {
+  position: absolute;
+  left: 50%;
+  top: 99px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 340px;
+  padding: 7px 13px;
+  border-radius: 6px;
+  border: 1px solid #bacbca40;
+  background: #162d36bb;
+  text-align: center;
+  color: #dce8e5;
+  pointer-events: none;
+}
+#weather-hud b {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+#weather-hud small {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #b9cecf;
+  max-width: 310px;
+}
+#weather-hud[data-danger="true"] {
+  border-color: #e9c28180;
+}
+#fish-celebration {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 350px;
+  text-align: center;
+  pointer-events: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #132f38e8;
+  border: 1px solid #cde2b575;
+}
+#fish-celebration strong {
+  display: block;
+  color: #f0d899;
+  font-size: 18px;
+}
+#fish-celebration span {
+  display: block;
+  color: #d0e6df;
+  font-size: 13px;
+  margin: 6px 0;
+}
+#fish-celebration small {
+  color: #9ec7cb;
+  font-size: 12px;
+}
+.fish-journal {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 9px;
+}
+.fish-journal article {
+  padding: 12px;
+  border: 1px solid #9abbad40;
+  border-radius: 7px;
+}
+.fish-journal b,
+.fish-journal small {
+  display: block;
+  margin-bottom: 6px;
+}
+.fish-journal small {
+  color: #abc2bd;
+  font-size: 12px;
+}
+.fish-journal .legendary {
+  border-color: #dabd78;
+}
+@media (max-width: 700px) {
+  #weather-hud {
+    top: 77px;
+    max-width: 180px;
+    padding: 5px 8px;
+  }
+  #weather-hud b {
+    font-size: 11px;
+  }
+  #weather-hud small {
+    display: none;
+  }
+  #fish-celebration {
+    bottom: 32px;
+    max-width: 240px;
+    padding: 9px 12px;
+  }
+  #fish-celebration strong {
+    font-size: 16px;
+  }
+}
+@media (max-height: 550px) {
+  #weather-hud {
+    top: 69px;
+  }
+  #weather-hud small {
+    display: none;
+  }
+  #fish-celebration {
+    bottom: 32px;
+    left: 50%;
+    padding: 6px 12px;
+  }
+}

@@ -1,0 +1,6 @@
+Mancing Mania, Mantap!
+
+Original game dialogue synthesized locally with the installed Indonesian Microsoft Andika voice through Windows System.Speech.Synthesis.
+Source text: "Mancing Mania! Mantap!"
+Output: public/audio/mancing-mania.wav (bundled for offline play).
+No voice model or speech engine is redistributed. Sound effects and weather visuals are procedural game assets.

@@ -19,7 +19,34 @@ import {
 
 export function makeMount(def, tech = {}) {
   if (def.id === "gyroball") return makeGyroBall();
-  if (def.id === "sembrani") return makeLivestock("horse", false, true);
+  if (def.id === "sembrani") {
+    const horse = makeLivestock("horse", false, true);
+    if (tech.spiritAwakened) {
+      const aura = new THREE.Group();
+      horse.add(aura);
+      for (let i = 0; i < 6; i++)
+        orb(aura, 0.13, "#83edce", 0, 2.1 + i * 0.09, 0.2 + i * 0.16, 0,
+          { emissive: "#50dfc4", emissiveIntensity: 1.4 });
+      for (const side of [-1, 1]) {
+        box(aura, 0.08, 0.4, 0.95, "#278c86", side * 0.5, 1.9, -0.1,
+          { metalness: 0.35 });
+        for (let i = 0; i < 5; i++)
+          orb(aura, 0.055, "#e7c278", side * 0.56, 1.85 + Math.sin(i) * 0.08,
+            -0.45 + i * 0.18, 0, { emissive: "#bf8735", emissiveIntensity: 0.3 });
+      }
+      const sparks = [];
+      for (let i = 0; i < 8; i++)
+        sparks.push(orb(aura, 0.05, "#f6d58e", Math.sin(i) * 0.65, 0.1,
+          Math.cos(i) * 0.9, 0, { emissive: "#e6b94a", emissiveIntensity: 1.4 }));
+      horse.userData.sukmaSparks = sparks;
+      if (tech.spiritBlessed) {
+        box(aura, 1.03, 0.12, 0.8, "#d7b56b", 0, 2.27, -0.12);
+        orb(aura, 0.16, "#b6f9e6", 0, 2.42, 1.9, 0,
+          { emissive: "#61d9be", emissiveIntensity: 1.5 });
+      }
+    }
+    return horse;
+  }
   if (def.id === "ufo") return makeSaucer(false, true);
   if (!["naga", "mecha"].includes(def.id))
     return makeBicycle(def.id, def.color);
@@ -219,6 +246,10 @@ export function animateMount(g, id, t, moving) {
   }
   if (id === "sembrani") {
     animateLivestock(g, t, moving, g.position.y > 4);
+    g.userData.sukmaSparks?.forEach((s, i) => {
+      s.visible = moving;
+      s.position.y = 0.08 + ((t * 0.7 + i / 8) % 1) * 0.65;
+    });
     return;
   }
   if (id === "ufo") {

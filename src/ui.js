@@ -171,6 +171,10 @@ export class UI {
     this.game.dragging = false;
   }
   open(type) {
+    if (this.game.spirit?.active && !["dialogue", "journal", "help", "settings"].includes(type)) {
+      this.toast("Kembali ke desa untuk membuka menu ini.");
+      return;
+    }
     this.panel = type;
     this.game.keys.clear();
     this.joystick?.reset();
@@ -352,7 +356,7 @@ export class UI {
       )}</div><div class="note-box">Api + Angin membentuk Tornado Api. Air + Tanah membentuk Akar Pasang. Elemen sama memperkuat resonansi. Pendamping memperoleh EXP setiap pertarungan; awakening membuka serangan area yang lebih besar.</div>`;
     }
     if (type === "journal")
-      return `<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
+      return `${this.game.spirit?.journal() || ""}<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
         (q) => {
           const status = d.quests[q.id],
             progress = Math.min(q.target, d.stats[q.stat]);

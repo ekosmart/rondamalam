@@ -4,6 +4,7 @@ import { VillageWeather } from "./weather.js";
 import "./weather.css";
 import { Frontier } from "./frontier.js";
 import { Expeditions } from "./expeditions.js";
+import { SpiritRealm } from "./spirit-realm.js";
 import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
 import { RuralLife } from "./rural-life.js";
@@ -277,6 +278,7 @@ class Game {
     this.incidents = new Incidents(this);
     this.frontier = new Frontier(this);
     this.expeditions = new Expeditions(this);
+    this.spirit = new SpiritRealm(this);
     this.weather = new VillageWeather(this);
     this.enemies.forEach((e) => scaleEnemy(e, this.state.data.level));
     this.bindControls();
@@ -330,7 +332,11 @@ class Game {
     if (this.bike) this.bike.removeFromParent();
     const m = MOUNTS.find((m) => m.id === this.state.data.mount) || MOUNTS[0];
     if (!this.isFlying && this.altitude > 0) this.land();
-    this.bike = makeMount(m, this.state.data.incidents.tech);
+    this.bike = makeMount(m, {
+      ...this.state.data.incidents.tech,
+      spiritAwakened: this.state.data.spirit.sparks.length === 3,
+      spiritBlessed: this.state.data.spirit.blessed,
+    });
     this.scene.add(this.bike);
     this.bike.visible = this.state.data.riding;
   }
@@ -636,6 +642,7 @@ class Game {
   }
   action(action, args = {}) {
     if (this.pwa?.action(action)) return;
+    if (this.started && this.spirit?.action(action, args)) return;
     if (this.started && this.expeditions?.action(action, args)) return;
     if (this.started && this.frontier?.action(action, args)) return;
     const st = this.state,
@@ -1014,6 +1021,7 @@ class Game {
     }
   }
   interact() {
+    if (this.interactable?.type.startsWith("spirit-") && this.spirit.interact(this.interactable)) return;
     if (this.frontier.fishing) {
       this.frontier.reel();
       return;
@@ -1025,6 +1033,7 @@ class Game {
     const it = this.interactable;
     if (!it) return;
     if (
+      this.spirit.interact(it) ||
       this.weather.interact(it) ||
       this.frontier.interact(it) ||
       this.rural.interact(it) ||
@@ -1110,7 +1119,7 @@ class Game {
   }
   findInteraction() {
     if (this.altitude > 5 || this.sports?.active) {
-      this.interactable = null;
+      this.interactable = this.sports?.active ? null : (this.spirit?.interactions().sort((a,b) => a.dist-b.dist)[0] || null);
       return;
     }
     const d = this.state.data,
@@ -1154,6 +1163,7 @@ class Game {
         label: "Ritual Mustika Bumi · 6 sari gaib",
       });
     candidates.push(
+      ...(this.spirit?.interactions() || []),
       ...(this.life?.interactions() || []),
       ...(this.incidents?.interactions() || []),
       ...(this.rural?.interactions() || []),
@@ -1176,6 +1186,7 @@ class Game {
       .sort((a, b) => distance(a.pos, origin) - distance(b.pos, origin));
   }
   attack() {
+    if (this.spirit?.active) { this.spirit.attack(); return; }
     if (this.expeditions?.active || this.frontier?.mountedAttack()) return;
     if (this.sports?.active) {
       this.sports.kick();
@@ -1892,6 +1903,10 @@ class Game {
     this.bike?.position.set(d.x, 0, d.z);
   }
   pickTarget(clientX, clientY) {
+    if (this.spirit?.active) {
+      if (!this.ui.panel) this.spirit.attack();
+      return;
+    }
     if (
       !this.started ||
       this.ui.panel ||
@@ -1974,6 +1989,11 @@ class Game {
     this.lastTime = t;
     if (document.hidden) return;
     this.elapsed += dt;
+    if (this.spirit?.active) {
+      this.audio.setWeather({}, true);
+      this.spirit.frame(dt, this.elapsed);
+      return;
+    }
     if (this.expeditions?.active) {
       this.audio.setWeather({}, true);
       this.expeditions.frame(dt, this.elapsed);
@@ -2011,6 +2031,7 @@ class Game {
         this.rural.update(dt, this.elapsed);
         this.frontier.update(dt, this.elapsed);
         this.weather.update(dt);
+        this.spirit.updateVillage(dt, this.elapsed);
         this.ranged.update(dt);
         this.updateTarget();
         this.mountCombat.update(dt);

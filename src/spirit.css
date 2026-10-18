@@ -1,0 +1,80 @@
+.inside-spirit
+  #hud
+  > :not(#spirit-hud):not(.top-actions):not(.mobile-pad):not(#toast) {
+  display: none !important;
+}
+#spirit-hud {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  width: min(650px, calc(100vw - 40px));
+  padding: 16px 20px;
+  background: #122d34e8;
+  border: 1px solid #c0b37a80;
+  border-radius: 10px;
+  color: #f0e6c4;
+  pointer-events: auto;
+}
+#spirit-hud.hidden {
+  display: none;
+}
+#spirit-hud small,
+#spirit-hud strong,
+#spirit-hud span,
+#spirit-hud label {
+  display: block;
+}
+#spirit-hud small {
+  color: #9bdcca;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+#spirit-hud strong {
+  font:
+    600 27px "Cormorant Garamond",
+    serif;
+  margin: 5px 0;
+}
+#spirit-hud span {
+  font-size: 13px;
+  line-height: 1.5;
+}
+#spirit-hud nav,
+.spirit-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+#spirit-hud button {
+  font-size: 12px;
+  padding: 8px 12px;
+  min-height: 38px;
+}
+#spirit-hud progress {
+  width: 100%;
+  height: 9px;
+  accent-color: #e8a46f;
+  display: block;
+  margin: 6px 0;
+}
+.inside-spirit .mobile-pad {
+  z-index: 8;
+}
+@media (max-width: 700px) {
+  #spirit-hud {
+    top: 65px;
+    left: 10px;
+    width: calc(100vw - 20px);
+    padding: 9px 12px;
+  }
+  #spirit-hud strong {
+    font-size: 21px;
+  }
+  #spirit-hud span {
+    font-size: 11px;
+  }
+  #spirit-hud button {
+    padding: 6px 8px;
+  }
+}

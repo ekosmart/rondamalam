@@ -1,4 +1,5 @@
 import { freshWeather, restoreWeather } from "./weather-rules.js";
+import { freshSpirit, restoreSpirit } from "./spirit-rules.js";
 import { freshFrontier, restoreFrontier } from "./frontier-rules.js";
 import { patrolPosts, POST_POOL } from "./layout.js";
 import { freshIncidents, restoreIncidents } from "./incident-rules.js";
@@ -13,6 +14,7 @@ export function freshState() {
     patrolVersion: 2,
     incidents: freshIncidents(),
     rural: { cared: [] },
+    spirit: freshSpirit(),
     frontier: freshFrontier(),
     weather: freshWeather(),
     village: { treasury: 800, damage: 0 },
@@ -105,6 +107,7 @@ export class GameState {
         incidents: restoreIncidents(saved.incidents, base.incidents.seed),
         frontier: restoreFrontier(saved.frontier),
         weather: restoreWeather(saved.weather),
+        spirit: restoreSpirit(saved.spirit),
         rural: {
           ...base.rural,
           ...saved.rural,

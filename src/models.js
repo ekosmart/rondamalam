@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { ELEMENTS } from "./data.js";
+import { makeKerisMpuGandring } from "./keris-mpu-gandring.js";
 
 const materials = new Map();
 export function material(color, options = {}) {
@@ -158,6 +159,7 @@ export function glow(parent, color, size, x, y, z, opacity = 0.5) {
   return obj;
 }
 export function makeWeapon(id) {
+  if (id === "keris-mpu-gandring") return makeKerisMpuGandring();
   const g = new THREE.Group();
   cylinder(g, 0.09, 0.12, 0.65, "#544536", 0, 0.1, 0);
   if (id === "laras-surya") {

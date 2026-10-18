@@ -413,6 +413,17 @@ export const WEAPONS = [
     cost: { coins: 130, iron: 4, essence: 2 },
   },
   {
+    id: "keris-mpu-gandring",
+    name: "Keris Mpu Gandring",
+    element: "Gaib",
+    damage: 52,
+    attackCooldown: 0.42,
+    icon: "sword",
+    desc: "Pusaka tujuh luk berpamor perak. Bilah besi tempa, gagang jati, dan mendak kuningan menyimpan daya gaib.",
+    cost: { coins: 300, iron: 7, essence: 5 },
+    asset: "/models/weapons/keris-mpu-gandring.glb",
+  },
+  {
     id: "obor",
     name: "Obor Larung",
     element: "Api",

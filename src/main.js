@@ -1208,7 +1208,7 @@ class Game {
       enemies.unshift(enemies.splice(enemies.indexOf(this.lockedTarget), 1)[0]);
     const aimed = this.lockedTarget || enemies[0];
     if (aimed) this.facing = Math.atan2(aimed.pos.x - d.x, aimed.pos.z - d.z);
-    this.cooldowns.attack = w.id === "keris" ? 0.36 : 0.56;
+    this.cooldowns.attack = w.attackCooldown ?? (w.id === "keris" ? 0.36 : 0.56);
     this.swing = 0.001;
     this.audio.play("swing");
     this.effects.ring(

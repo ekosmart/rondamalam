@@ -6,6 +6,7 @@ import { Frontier } from "./frontier.js";
 import { Expeditions } from "./expeditions.js";
 import { SpiritRealm } from "./spirit-realm.js";
 import { Coast } from "./coast.js";
+import { animateFolkloreGhost, makeFolkloreGhost } from "./folklore-models.js";
 import { WORLD_BOUNDS } from "./coast-rules.js";
 import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
@@ -772,10 +773,14 @@ class Game {
         this.lockedTarget = null;
         break;
       case "ascend":
-        this.cruiseAltitude = clamp(this.cruiseAltitude + 5, 8, 80);
+        if (this.isFlying) this.cruiseAltitude = clamp(this.cruiseAltitude + 5, 8, 80);
+        break;
+      case "ghost-voice":
+        this.audio.start();
+        this.audio.ghostVoices.play(args.id, { preview: true });
         break;
       case "descend":
-        this.cruiseAltitude = clamp(this.cruiseAltitude - 5, 8, 80);
+        if (this.isFlying) this.cruiseAltitude = clamp(this.cruiseAltitude - 5, 8, 80);
         break;
       case "attack":
         this.attack();
@@ -1431,6 +1436,16 @@ class Game {
     if (e.hp <= 0) this.defeat(e, false, source);
   }
   defeat(e, caught = false, source = "player") {
+    if (e.model?.userData.folklore) {
+      const echo = makeFolkloreGhost(e.def);
+      echo.position.copy(e.pos);
+      echo.rotation.copy(e.model.rotation);
+      this.scene.add(echo);
+      (this.ghostDepartures ??= []).push({ model: echo, time: 0, caught });
+      this.audio.ghostVoices.play(e.def.id, {
+        distance: distance(e.pos, this.state.data), event: "capture",
+      });
+    }
     this.coast?.defeated(e);
     if (e.dino) {
       this.frontier.wildDefeated(e);
@@ -1593,10 +1608,8 @@ class Game {
     );
     if (this.isSafe) d.hp = clamp(d.hp + dt * 10, 0, this.state.maxHp);
     if (this.isFlying) {
-      if (this.keys.has("KeyT"))
-        this.cruiseAltitude = clamp(this.cruiseAltitude + dt * 10, 8, 80);
-      if (this.keys.has("KeyC"))
-        this.cruiseAltitude = clamp(this.cruiseAltitude - dt * 10, 8, 80);
+      const vertical = clamp((this.keys.has("KeyT") ? 1 : 0) - (this.keys.has("KeyC") ? 1 : 0) + (this.flightInput || 0), -1, 1);
+      this.cruiseAltitude = clamp(this.cruiseAltitude + vertical * dt * 10, 8, 80);
       const floor = this.world.flightClearance(d.x, d.z);
       this.altitude = Math.max(
         floor,
@@ -1663,6 +1676,7 @@ class Game {
       this.companionModel.rotation.y = this.facing;
       this.companionModel.userData.body.rotation.z =
         Math.sin(this.elapsed * 1.3) * 0.04;
+      animateFolkloreGhost(this.companionModel, this.elapsed, { moving });
       if (this.state.companion?.awakened && Math.random() < dt * 20)
         this.effects.burst(
           this.companionModel.position.x,
@@ -1789,6 +1803,8 @@ class Game {
             );
           } else this.hurt(e.power, e.human ? "physical" : "magic");
           e.attackTimer = e.def.pickpocket ? 10 : e.def.global ? 1.3 : 1.7;
+          if (e.model.userData.folklore)
+            this.audio.ghostVoices.play(e.def.id, { distance: pd, event: "attack" });
           if (e.def.id === "dracula") e.hp = Math.min(e.maxHp, e.hp + 8);
         }
         if (pursuing && !e.human && this.altitude >= 6 && Math.hypot(pd, this.altitude) < 18 && e.attackTimer <= 0) {
@@ -1818,7 +1834,7 @@ class Game {
         e.model.scale.setScalar(e.hit > 0 ? 1.05 : 1);
       } else {
         const gd = e.model.userData;
-        e.pos.y = [
+        e.pos.y = e.def.id === "pocong" ? this.world.groundHeight(e.pos.x,e.pos.z) : [
           "boar",
           "fox",
           "beast",
@@ -1841,6 +1857,16 @@ class Game {
         gd.own.emissive.set(
           e.hp / e.maxHp <= 0.25 ? "#d27967" : ELEMENTS[e.def.element],
         );
+        animateFolkloreGhost(e.model, this.elapsed + e.wander, {
+          moving, attack: Math.max(0, (e.attackTimer - 1.2) / .5), hit: e.hit,
+        });
+        if (gd.folklore && pd < 30 && this.altitude < 18) {
+          const dx = e.pos.x - d.x, dz = e.pos.z - d.z;
+          this.audio.ghostVoices.play(e.def.id, {
+            distance: pd,
+            pan: (dx * Math.cos(this.cameraYaw) - dz * Math.sin(this.cameraYaw)) / Math.max(1, pd),
+          });
+        }
       }
     }
     for (const n of this.npcs) {
@@ -2003,18 +2029,37 @@ class Game {
     if (document.hidden) return;
     this.elapsed += dt;
     if (this.spirit?.active) {
+      this.audio.ghostVoices.pause(true);
       this.audio.setWeather({}, true);
       this.spirit.frame(dt, this.elapsed);
       return;
     }
     if (this.expeditions?.active) {
+      this.audio.ghostVoices.pause(true);
       this.audio.setWeather({}, true);
       this.expeditions.frame(dt, this.elapsed);
       return;
     }
     const running = this.started && !this.ui.panel && this.deathTimer <= 0;
+    this.audio.ghostVoices.pause(!running);
     this.audio.setWeather(this.weather.def, !running);
     if (running) {
+      for (const echo of this.ghostDepartures || []) {
+        echo.time += dt;
+        const f = Math.min(1, echo.time / .65);
+        echo.model.scale.setScalar(Math.max(.01, 1 - f));
+        echo.model.rotation.y += dt * 8;
+        echo.model.position.y += dt * (echo.caught ? 2 : 1);
+        if (f === 1) {
+          echo.model.removeFromParent();
+          const materials = new Set();
+          echo.model.traverse(m => {
+            if (m.isMesh) { m.geometry.dispose(); materials.add(m.material); }
+          });
+          materials.forEach(m => m.dispose());
+        }
+      }
+      this.ghostDepartures = (this.ghostDepartures || []).filter(e => e.time < .65);
       const change = this.sports.active ? null : this.state.advance(dt);
       if (change) {
         this.ui.toast(

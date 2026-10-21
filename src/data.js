@@ -139,6 +139,7 @@ export const GHOSTS = [
   },
   {
     id: "pocong",
+    aimHeight: 1.8,
     name: "Pocong",
     region: "Jawa",
     element: "Tanah",
@@ -152,6 +153,7 @@ export const GHOSTS = [
   },
   {
     id: "kuntilanak",
+    aimHeight: 1.8,
     name: "Kuntilanak",
     region: "Jawa",
     element: "Angin",
@@ -165,6 +167,7 @@ export const GHOSTS = [
   },
   {
     id: "genderuwo",
+    aimHeight: 2.6,
     name: "Genderuwo",
     region: "Jawa",
     element: "Tanah",

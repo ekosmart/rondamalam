@@ -54,6 +54,8 @@ export class SpiritRealm {
     this.hud.id = "spirit-hud";
     this.hud.className = "hidden";
     document.querySelector("#hud").append(this.hud);
+    this.hud.innerHTML = `<div class="spirit-content"></div><nav class="spirit-return">${btn("spirit-exit", "Pulang ke pantai")}${btn("spirit-home", "Kembali ke desa")}</nav>`;
+    this.hudContent = this.hud.querySelector(".spirit-content");
     this.buildBeach();
   }
   get s() {
@@ -251,6 +253,7 @@ export class SpiritRealm {
     g.state.save();
     g.ui.close();
     g.keys.clear();
+    g.flightInput = 0;
     g.ui.joystick?.reset();
     g.lockedTarget = null;
     document.body.classList.add("inside-spirit");
@@ -262,7 +265,7 @@ export class SpiritRealm {
     );
     return true;
   }
-  exit(defeated = false) {
+  exit(defeated = false, village = false) {
     if (!this.active) return;
     const g = this.g,
       d = g.state.data;
@@ -272,12 +275,12 @@ export class SpiritRealm {
     this.sightTimer = 0;
     g.ui.close();
     g.keys.clear();
+    g.flightInput = 0;
     g.ui.joystick?.reset();
     Object.assign(d, {
-      x: SPIRIT_GATE.x,
-      z: SPIRIT_GATE.z - 6,
+      ...g.world.nearestLanding(village ? 0 : SPIRIT_GATE.x, village ? 12 : SPIRIT_GATE.z - 6),
       mount: "sembrani",
-      riding: true,
+      riding: !village,
     });
     if (defeated) {
       d.hp = Math.max(1, Math.round(g.state.maxHp * 0.5));
@@ -612,8 +615,8 @@ export class SpiritRealm {
       return true;
     }
     if (!this.active) return false;
-    if (action === "spirit-exit") {
-      this.exit();
+    if (action === "spirit-exit" || action === "spirit-home") {
+      this.exit(false, action === "spirit-home");
       return true;
     }
     if (action === "spirit-note") {
@@ -823,7 +826,11 @@ export class SpiritRealm {
     const direction = objective
       ? `${objective.x < this.position.x ? "←" : "→"} ${Math.round(Math.abs(objective.x - this.position.x))} m · ${objective.z < this.position.z ? "↑" : "↓"} ${Math.round(Math.abs(objective.z - this.position.z))} m`
       : "";
-    this.hud.innerHTML = `<div class="spirit-status"><small>ALAM GAIB · KERATON SAMUDRA SUNYI</small><strong>${this.crossing ? "Melintasi laut berkabut" : title}</strong><span>${this.crossing ? "WASD / joystick: ikuti jalan cahaya menuju gerbang." : desc}</span><span>HP ${Math.ceil(this.g.state.data.hp)}/${this.g.state.maxHp} · ${this.mounted ? "Sembrani" : "Berjalan"} · ${direction}</span>${this.boss.visible ? `<label>Penjaga Palung · ${Math.ceil(this.bossHp)}/${this.bossMax}<progress max="${this.bossMax}" value="${this.bossHp}"></progress></label><small>${this.bossPhase === "windup" ? "HINDARI LINGKARAN MERAH" : this.bossPhase === "recovery" ? "CELAH TERBUKA — SERANG" : "Spasi serang · Q pusaka · WASD menghindar"}</small>` : ""}</div><nav>${n ? btn("spirit-interact", n.label + " · E") : ""}${!this.crossing ? btn("mount", this.mounted ? "Turun · B" : "Naik · B") : ""}${this.boss.visible ? btn("attack", "Serang · Spasi") + btn("special", "Pusaka · Q") : ""}${this.s.blessed ? btn("spirit-water", "Tapak · V " + Math.ceil(this.waterCooldown)) + btn("spirit-sight", "Mata · R " + Math.ceil(this.sightCooldown)) : ""}${btn("spirit-exit", "Pulang ke pantai")}</nav>`;
+    const content = `<div class="spirit-status"><small>ALAM GAIB · KERATON SAMUDRA SUNYI</small><strong>${this.crossing ? "Melintasi laut berkabut" : title}</strong><span>${this.crossing ? "WASD / joystick: ikuti jalan cahaya menuju gerbang." : desc}</span><span>HP ${Math.ceil(this.g.state.data.hp)}/${this.g.state.maxHp} · ${this.mounted ? "Sembrani" : "Berjalan"} · ${direction}</span>${this.boss.visible ? `<label>Penjaga Palung · ${Math.ceil(this.bossHp)}/${this.bossMax}<progress max="${this.bossMax}" value="${this.bossHp}"></progress></label><small>${this.bossPhase === "windup" ? "HINDARI LINGKARAN MERAH" : this.bossPhase === "recovery" ? "CELAH TERBUKA — SERANG" : "Spasi serang · Q pusaka · WASD menghindar"}</small>` : ""}</div><nav>${n ? btn("spirit-interact", n.label + " · E") : ""}${!this.crossing ? btn("mount", this.mounted ? "Turun · B" : "Naik · B") : ""}${this.boss.visible ? btn("attack", "Serang · Spasi") + btn("special", "Pusaka · Q") : ""}${this.s.blessed ? btn("spirit-water", "Tapak · V " + Math.ceil(this.waterCooldown)) + btn("spirit-sight", "Mata · R " + Math.ceil(this.sightCooldown)) : ""}</nav>`;
+    if (content !== this.lastHUDContent) {
+      this.hudContent.innerHTML = content;
+      this.lastHUDContent = content;
+    }
   }
   updateVillage(dt, t) {
     this.portal.material.opacity =

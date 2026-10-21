@@ -1,9 +1,11 @@
+import { GhostVoices } from "./ghost-audio.js";
 export class Soundscape {
   constructor() {
     this.ctx = null;
     this.enabled = true;
     this.timer = 0;
     this.ambience = null;
+    this.ghostVoices = new GhostVoices(this);
   }
   start() {
     if (!this.ctx) {
@@ -94,6 +96,7 @@ export class Soundscape {
   setEnabled(on) {
     this.enabled = on;
     if (!on) {
+      this.ghostVoices.stop();
       this.fishVoice?.pause();
       window.speechSynthesis?.cancel();
     }

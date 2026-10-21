@@ -211,6 +211,28 @@ try {
     () =>
       __ronda.state.data.spirit.bossDefeated && !__ronda.spirit.boss.visible,
   );
+  // A press spanning several HUD refreshes used to lose its click target.
+  await page.locator('[data-action="spirit-exit"]').click({ delay: 450 });
+  await check(
+    "return button survives HUD refreshes after defeating the guardian",
+    () =>
+      !__ronda.spirit.active &&
+      __ronda.state.data.spirit.bossDefeated &&
+      __ronda.world.canMove(__ronda.state.data.x, __ronda.state.data.z),
+  );
+  await page.evaluate(() => {
+    const g = __ronda;
+    Object.assign(g.state.data, {
+      x: 108,
+      z: 262,
+      riding: true,
+      mount: "sembrani",
+    });
+    g.spirit.enter();
+    g.spirit.position.set(0, 0, 31);
+    g.spirit.frame(0.01, 0);
+    g.spirit.mounted = false;
+  });
   await pos(0, -36);
   await interact();
   await check(
@@ -258,6 +280,29 @@ try {
   await check(
     "mobile layout has no horizontal overflow",
     () => document.documentElement.scrollWidth <= innerWidth,
+  );
+  await page.locator('[data-action="spirit-home"]').click({ delay: 450 });
+  await check(
+    "mobile return to village keeps blessing and restores normal controls",
+    () => {
+      const g = __ronda;
+      return (
+        !g.spirit.active &&
+        !document.body.classList.contains("inside-spirit") &&
+        g.state.data.spirit.blessed &&
+        Math.hypot(g.state.data.x, g.state.data.z) < 25 &&
+        !g.state.data.riding
+      );
+    },
+  );
+  await page.keyboard.down("KeyW");
+  await page.evaluate(() => {
+    for (let i = 0; i < 20; i++) __ronda.updatePlayer(0.02);
+  });
+  await page.keyboard.up("KeyW");
+  await check(
+    "player can walk away after returning",
+    () => __ronda.state.data.z < 11,
   );
   await page.evaluate(() => __ronda.state.save());
   await page.reload();

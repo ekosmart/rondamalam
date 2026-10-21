@@ -1,3 +1,4 @@
+import { GHOST_VOICES } from "./ghost-audio.js";
 import { TouchJoystick } from "./touch-joystick.js";
 import { SHOP_ITEMS, DINOSAURS } from "./frontier-data.js";
 import {
@@ -85,7 +86,7 @@ export class UI {
         <section class="player-card"><div class="avatar">${icon("shield", 24)}<b id="level">1</b></div><div class="player-vitals"><div class="name-row"><strong>PAK HANSIP</strong><span id="health-text">100 / 100</span></div><div class="meter hp"><i id="hp-fill"></i></div><div class="meter stamina"><i id="stamina-fill"></i></div><div class="vitals-bottom"><span id="status-label"><i></i> Dalam lindungan</span><span>${icon("coin", 13)} <b id="coins">160</b></span></div></div></section>
         <section class="quest-hud"><div class="eyebrow"><span></span> TUGAS RONDA</div><h3>Lima denting sebelum subuh</h3><p id="quest-desc">Bunyikan tiang listrik di sekitar desa.</p><div class="post-progress" id="post-progress"></div><div class="quest-foot"><span id="post-count">0 / 5 tiang</span>${button("map", "Lihat peta " + icon("arrow", 13), "text-button")}</div></section>
         <aside class="map-hud"><div class="time-row"><div id="time-icon">${icon("moon", 18)}</div><strong id="clock">19:12</strong><span id="night-label">MALAM 01</span></div><button class="minimap-button" data-action="map" aria-label="Buka peta desa"><canvas id="minimap" width="360" height="360"></canvas><span class="map-north">U</span><span class="map-expand">${icon("map", 15)} <kbd>M</kbd></span></button><div class="security-line"><span>${icon("shield", 13)} Keamanan desa</span><b id="security">84%</b></div><div class="meter security"><i id="security-fill"></i></div><div id="kliwon-label">✧ &nbsp; MALAM KLIWON</div></aside>
-        <div id="village-alert"></div><div id="mount-status" class="hidden"><b id="mount-status-title"></b><span id="mount-status-hint"></span><div id="flight-controls"><button data-action="ascend">T ↑ Naik</button><button data-action="descend">C ↓ Turun</button></div><div id="tractor-controls" class="hidden"><button data-action="tractor">U Angkat / jatuhkan</button></div><div id="tech-controls" class="hidden"><button data-action="mecha-flight">V Terbang / jalan</button><button data-action="missiles">H Misil</button></div></div>
+        <div id="village-alert"></div><div id="mount-status" class="hidden"><b id="mount-status-title"></b><span id="mount-status-hint"></span><div id="tractor-controls" class="hidden"><button data-action="tractor">U Angkat / jatuhkan</button></div><div id="tech-controls" class="hidden"><button data-action="mecha-flight">V Terbang / jalan</button><button data-action="missiles">H Misil</button></div></div>
         <div id="area-banner"><span>MEMASUKI WILAYAH</span><h2>Pos Ronda</h2><p>Tempat pulang. Tempat bertahan.</p></div>
         <div id="target-hud" class="hidden"><span id="target-category">ENTITAS LIAR</span><strong id="target-name">Pocong</strong><div class="meter enemy"><i id="enemy-fill"></i></div><small id="target-status">Tanah · Jawa</small></div>
         <div id="waypoint-hud" class="hidden">${icon("pin", 16)}<span></span></div>
@@ -95,16 +96,31 @@ export class UI {
         <div class="skills"><button data-action="special" class="skill-button" id="special-button"><kbd>Q</kbd>${icon("bolt", 23)}<span>Pusaka</span><i></i></button><button data-action="companion" class="skill-button" id="companion-button"><kbd>G</kbd>${icon("ghost", 23)}<span id="companion-name">Pendamping</span><i></i></button><span class="skills-note">KLIK <b>Target</b> · SPASI <b>Serang</b></span></div>
         <footer class="control-footer"><span><kbd>W A S D</kbd> Bergerak</span><span><kbd>SHIFT</kbd> Lari</span><span><kbd>DRAG</kbd> Putar kamera</span><span><kbd>SCROLL</kbd> Zoom</span><span><kbd>E</kbd> Interaksi</span><span class="save-state"><i></i> Tersimpan lokal</span></footer>
         <div class="mobile-pad"><div id="move-joystick" aria-label="Joystick gerak karakter"><span class="joystick-knob"></span><span class="joystick-label">GERAK</span></div><button data-action="interact" aria-label="Interaksi">E</button></div>
-        <div id="first-tip"><span>${icon("light", 17)} SELAMAT DATANG DI SUKARAME</span><p>Dekati Pak Wiryo di pos. Tekan <kbd>E</kbd> untuk berbicara, atau <kbd>B</kbd> untuk naik sepeda.</p><button data-action="dismiss-tip" aria-label="Tutup petunjuk">${icon("close", 15)}</button></div>
+        <section id="flight-controls" class="hidden" aria-label="Kontrol ketinggian tunggangan"><strong id="flight-height"></strong><button data-action="ascend" data-flight="1" aria-label="Naik ketinggian">↑ Naik <kbd>T</kbd></button><button data-action="descend" data-flight="-1" aria-label="Turun ketinggian">↓ Turun <kbd>C</kbd></button><small>Tekan atau tahan</small></section><div id="first-tip"><span>${icon("light", 17)} SELAMAT DATANG DI SUKARAME</span><p>Dekati Pak Wiryo di pos. Tekan <kbd>E</kbd> untuk berbicara, atau <kbd>B</kbd> untuk naik sepeda.</p><button data-action="dismiss-tip" aria-label="Tutup petunjuk">${icon("close", 15)}</button></div>
       </div>
       <div id="modal-root"></div><div id="damage-flash"></div><div id="respawn-overlay" class="hidden"><span>FAJAR MASIH MENUNGGUMU</span><h2>Belum waktunya pulang.</h2><p>Warga membawamu kembali ke pos ronda.</p></div>`;
     this.root.addEventListener("click", (e) => {
       const el = e.target.closest("[data-action]");
       if (el) {
+        if (el.dataset.flight && e.detail > 0) return;
         e.stopPropagation();
         this.handle(el.dataset.action, el.dataset);
       }
     });
+    const flightControls = this.root.querySelector("#flight-controls");
+    const releaseFlight = () => { this.game.flightInput = 0; };
+    flightControls.addEventListener("pointerdown", e => {
+      const button = e.target.closest("[data-flight]");
+      if (!button || !this.game.isFlying || this.panel || e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      button.setPointerCapture(e.pointerId);
+      this.game.flightInput = Number(button.dataset.flight);
+      this.game.action(button.dataset.action);
+    });
+    for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
+      flightControls.addEventListener(event, releaseFlight);
+    window.addEventListener("blur", releaseFlight);
+    document.addEventListener("visibilitychange", releaseFlight);
     this.joystick = new TouchJoystick(this.game, this.root.querySelector("#move-joystick"));
   }
   handle(action, d = {}) {
@@ -167,6 +183,7 @@ export class UI {
     this.panel = null;
     document.querySelector("#modal-root").innerHTML = "";
     this.game.keys.clear();
+    this.game.flightInput = 0;
     this.joystick?.reset();
     this.game.dragging = false;
   }
@@ -177,6 +194,7 @@ export class UI {
     }
     this.panel = type;
     this.game.keys.clear();
+    this.game.flightInput = 0;
     this.joystick?.reset();
     this.game.dragging = false;
     const titles = {
@@ -339,14 +357,14 @@ export class UI {
       let detail = "";
       if (selected) {
         const own = d.collection.find((g) => g.id === selected.id);
-        detail = `<div class="ghost-detail" style="--element:${ELEMENTS[selected.element]}"><div class="ghost-emblem">${icon("ghost", 56)}</div><div><span class="eyebrow">${selected.region} · ${selected.element}</span><h3>${selected.name}${own?.awakened ? " · Awakened" : ""}</h3><p>${selected.story}</p><small>${own ? `Level ${own.level} / 5 · ${own.xp} EXP · ${own.awakened ? "Ultimate terbuka" : "Roh milikmu"}` : `HP liar ${selected.hp} · Wilayah jaga ${selected.radius} m`}</small><div class="inline-actions">${own ? button("equip-ghost", d.companion === selected.id ? "Sedang mendampingi" : "Jadikan pendamping", "pill-button", `data-id="${selected.id}" ${d.companion === selected.id ? "disabled" : ""}`) : '<span class="muted">Tangkap dengan botol ketika HP ≤ 25%.</span>'}${own && !own.awakened ? button("awaken", "Awakening", "pill-button", `data-id="${selected.id}" ${own.level < 5 || !st.afford({ coins: 200, essence: 8, iron: 6 }) || !safe ? "disabled" : ""}`) : ""}</div>${own && !own.awakened ? "<small>Awakening di pos: level 5 · 200 koin · 8 sari gaib · 6 besi</small>" : ""}</div></div>`;
+        detail = `<div class="ghost-detail ${own ? "owned" : "unowned"}" style="--element:${ELEMENTS[selected.element]}"><div class="ghost-emblem"><img class="ghost-portrait" src="/portraits/${selected.id}.png" alt="${selected.name}" width="256" height="320"></div><div><span class="eyebrow">${selected.region} · ${selected.element}</span><h3>${selected.name}${own?.awakened ? " · Awakened" : ""}</h3><p>${selected.story}</p><small>${own ? `Level ${own.level} / 5 · ${own.xp} EXP · ${own.awakened ? "Ultimate terbuka" : "Roh milikmu"}` : `HP liar ${selected.hp} · Wilayah jaga ${selected.radius} m`}</small><div class="inline-actions">${GHOST_VOICES.has(selected.id) ? button("ghost-voice", "Dengarkan suara", "pill-button", `data-id="${selected.id}"`) : ""}${own ? button("equip-ghost", d.companion === selected.id ? "Sedang mendampingi" : "Jadikan pendamping", "pill-button", `data-id="${selected.id}" ${d.companion === selected.id ? "disabled" : ""}`) : '<span class="muted">Tangkap dengan botol ketika HP ≤ 25%.</span>'}${own && !own.awakened ? button("awaken", "Awakening", "pill-button", `data-id="${selected.id}" ${own.level < 5 || !st.afford({ coins: 200, essence: 8, iron: 6 }) || !safe ? "disabled" : ""}`) : ""}</div>${own && !own.awakened ? "<small>Awakening di pos: level 5 · 200 koin · 8 sari gaib · 6 besi</small>" : ""}</div></div>`;
       }
       return `<div class="section-intro"><span>${d.collection.length} / ${GHOSTS.length} ROH TERKOLEKSI</span><p>Satu pendamping. Lima elemen. Banyak cara menjaga malam.</p></div>${detail}<div class="bestiary-grid">${GHOSTS.map(
         (g) => {
           const own = d.collection.find((a) => a.id === g.id);
           return button(
             "ghost-detail",
-            `<div style="color:${ELEMENTS[g.element]}">${icon("ghost", 33)}</div><span class="ghost-region">${g.global ? "PORTAL KLIWON" : g.region}</span><strong>${g.name}</strong><small>${own ? `Lv. ${own.level}${own.awakened ? " ✧" : ""}` : g.element}</small>${own ? '<i class="owned-dot"></i>' : ""}`,
+            `<div class="ghost-art" style="--ghost-glow:${ELEMENTS[g.element]}"><img class="ghost-portrait" src="/portraits/${g.id}.png" alt="${g.name}" width="256" height="320" loading="lazy"></div><span class="ghost-region">${g.global ? "PORTAL KLIWON" : g.region}</span><strong>${g.name}</strong><small>${own ? `Lv. ${own.level}${own.awakened ? " ✧" : ""}` : `Belum dimiliki · ${g.element}`}</small>${own ? '<i class="owned-dot"></i>' : ""}`,
             `ghost-card ${own ? "owned" : ""} ${this.selectedGhost === g.id ? "selected" : ""}`,
             `data-id="${g.id}"`,
           );
@@ -504,7 +522,9 @@ export class UI {
     );
     document
       .querySelector("#flight-controls")
-      .classList.toggle("hidden", !flight);
+      .classList.toggle("hidden", !flight || !!g.sports.active || !!this.panel || !!g.coast?.boating);
+    if (!flight || this.panel) g.flightInput = 0;
+    set("flight-height", `${Math.round(g.altitude)} m · target ${Math.round(g.cruiseAltitude)} m`);
     document
       .querySelector("#tech-controls")
       .classList.toggle(

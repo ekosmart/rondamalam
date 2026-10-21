@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { makeHuman, animateHuman, box, orb, sign, beam } from "./models.js";
 import { makeCoastAsset } from "./coast-models.js";
+import { CAPTAIN, WARUNG } from "./coast-layout.js";
 import { FISH } from "./fishing-data.js";
 import { frontierPanel, frontierButton as button } from "./frontier.js";
 import {
@@ -19,9 +20,7 @@ import {
 } from "./coast-rules.js";
 import "./coast.css";
 const distance = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
-const CAPTAIN = { x: 20, z: 335 },
-  WARUNG = { x: 17, z: 371 },
-  WRECK = { x: 195, z: 440 };
+const WRECK = { x: 195, z: 440 };
 export class Coast {
   constructor(g) {
     this.g = g;
@@ -51,7 +50,7 @@ export class Coast {
     });
     this.rescueModels = FISHERMEN.map((def, i) => {
       const group = new THREE.Group();
-      group.position.set(def.x, 0.12, def.z);
+      group.position.set(def.x, 0.42, def.z);
       g.scene.add(group);
       box(group, 3, 0.2, 3, "#9b7c50", 0, 0, 0);
       const person = makeHuman(i ? "#9c724c" : "#72838f");
@@ -73,8 +72,8 @@ export class Coast {
     });
     this.npcs = [];
     for (const [name, x, z, color] of [
-      ["Bu Sari", 20, 335, "#b68b64"],
-      ["Bu Ningsih", 17, 371, "#8e9b75"],
+      ["Bu Sari", CAPTAIN.x, CAPTAIN.z, "#b68b64"],
+      ["Bu Ningsih", WARUNG.x, WARUNG.z, "#8e9b75"],
       ["Pak Jaya", -24, 394, "#748c9b"],
       ["Nelayan Bima", 40, 342, "#aa8255"],
       ["Nelayan Tono", 38, 353, "#6d8a84"],
@@ -94,9 +93,9 @@ export class Coast {
       this.npcs.push({ name, x, z, model });
     }
     sign(g.scene, "BU SARI • KABAR PELABUHAN", 8, 0.65).position.set(
-      20,
+      CAPTAIN.x,
       3.5,
-      335,
+      CAPTAIN.z,
     );
     this.lightPivot = new THREE.Group();
     this.lightPivot.position.set(30, 16.8, 440);
@@ -284,7 +283,7 @@ export class Coast {
     frontierPanel(
       g,
       "Bu Sari · Karang Tirta",
-      `<p class="frontier-lead">${desc}</p><h3>${title}</h3><p>${this.s.lighthouse ? "Mercusuar sudah menyala." : "Ambil lensa di gudang (−8, 352), dinamo di bengkel (−24, 400), dan kabel pelelangan (−24, 315)."} Nelayan selamat: ${this.s.rescued.length}/2.</p>${this.s.boatOwned && this.s.relic && this.s.butoDefeated && !this.s.completed ? button("coast-claim", "Serahkan segel & selesaikan quest") : ""}<p>${this.s.completed ? "Segel akan dikembalikan kepada Ratu Selatan. Terima kasih telah memulihkan pelabuhan." : ""}</p><h3>Pelelangan ikan</h3><p>Jual hasil pancing dari seluruh Sukarame. Catatan dan rekor ikan tetap tersimpan.</p>${button("coast-sell", "Jual seluruh ikan")}<p>${button("coast-next", "Tandai tujuan quest berikutnya")}</p>`,
+      `<p class="frontier-lead">${desc}</p><h3>${title}</h3><p>${this.s.lighthouse ? "Mercusuar sudah menyala." : "Ambil lensa di gudang (−8, 355), dinamo di bengkel (−24, 396), dan kabel pelelangan (−24, 315)."} Nelayan selamat: ${this.s.rescued.length}/2.</p>${this.s.boatOwned && this.s.relic && this.s.butoDefeated && !this.s.completed ? button("coast-claim", "Serahkan segel & selesaikan quest") : ""}<p>${this.s.completed ? "Segel akan dikembalikan kepada Ratu Selatan. Terima kasih telah memulihkan pelabuhan." : ""}</p><h3>Pelelangan ikan</h3><p>Jual hasil pancing dari seluruh Sukarame. Catatan dan rekor ikan tetap tersimpan.</p>${button("coast-sell", "Jual seluruh ikan")}<p>${button("coast-next", "Tandai tujuan quest berikutnya")}</p>`,
     );
   }
   board(id) {
@@ -483,7 +482,7 @@ export class Coast {
     g.player.rotation.y = this.boat.rotation.y;
     animateHuman(g.player, g.elapsed, false, true);
     if (g.companionModel) g.companionModel.position.set(d.x + 2, 1, d.z - 2);
-    this.wake.position.set(d.x, 0.22, d.z);
+    this.wake.position.set(d.x, 0.3, d.z);
     this.wake.scale.set(1.5, 2.2, 1);
     return true;
   }
@@ -508,7 +507,7 @@ export class Coast {
         this.s.lighthouse &&
         !this.s.rescued.includes(def.id) &&
         !this.aboard.includes(def.id);
-      group.position.y = 0.12 + Math.sin(t * 1.4) * 0.05;
+      group.position.y = 0.42 + Math.sin(t * 1.4) * 0.05;
       animateHuman(person, t, false, false);
     }
     for (const { def, gem } of this.partModels) {

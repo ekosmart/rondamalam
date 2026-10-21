@@ -1,5 +1,6 @@
+import { CAPTAIN } from "./coast-layout.js";
 export const WORLD_BOUNDS = { minX: -280, maxX: 280, minZ: -280, maxZ: 520 };
-export const COAST = { x: 20, z: 335 };
+export const COAST = CAPTAIN;
 export const LIGHTHOUSE = { x: 30, z: 440 };
 export const ISLAND = { x: 190, z: 420, radius: 27 };
 export const DOCKS = [
@@ -21,8 +22,8 @@ export const DOCKS = [
   },
 ];
 export const COAST_PARTS = [
-  { id: "lens", name: "Lensa Mercusuar", x: -8, z: 352 },
-  { id: "dynamo", name: "Dinamo Bengkel", x: -24, z: 400 },
+  { id: "lens", name: "Lensa Mercusuar", x: -8, z: 355 },
+  { id: "dynamo", name: "Dinamo Bengkel", x: -24, z: 396 },
   { id: "cable", name: "Gulungan Kabel", x: -24, z: 315 },
 ];
 export const FISHERMEN = [
@@ -32,7 +33,7 @@ export const FISHERMEN = [
 export const COAST_STAGES = [
   [
     "Cahaya Mercusuar Padam",
-    "Temui Bu Sari di pelelangan Karang Tirta (20, 335).",
+    `Temui Bu Sari di pelelangan Karang Tirta (${CAPTAIN.x}, ${CAPTAIN.z}).`,
   ],
   [
     "Tiga Komponen Mercusuar",

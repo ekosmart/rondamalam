@@ -1605,10 +1605,11 @@ class Game {
             Math.min(1, dt * 3),
       );
     } else this.altitude = 0;
+    const groundY = this.isFlying ? 0 : this.world.groundHeight(d.x, d.z);
     this.player.visible = !(d.riding && ["mecha", "ufo"].includes(d.mount));
     this.player.position.set(
       d.x,
-      this.altitude +
+      this.altitude + groundY +
         (d.riding
           ? d.mount === "naga"
             ? 2.7
@@ -1638,7 +1639,7 @@ class Game {
       if (horseback) leg.rotation.x = -0.35;
       if (d.riding && d.mount === "gyroball") leg.rotation.x = -1.15;
     });
-    this.bike.position.set(d.x, this.altitude, d.z);
+    this.bike.position.set(d.x, this.altitude + groundY, d.z);
     animateMount(this.bike, d.mount, this.elapsed, moving);
     this.bike.userData.flightJets?.forEach((j) => {
       j.visible = this.isFlying;
@@ -1658,7 +1659,7 @@ class Game {
       );
       this.companionModel.position.lerp(target, 1 - Math.exp(-dt * 4));
       this.companionModel.position.y =
-        this.altitude + 0.65 + Math.sin(this.elapsed * 2.4) * 0.15;
+        this.altitude + groundY + 0.65 + Math.sin(this.elapsed * 2.4) * 0.15;
       this.companionModel.rotation.y = this.facing;
       this.companionModel.userData.body.rotation.z =
         Math.sin(this.elapsed * 1.3) * 0.04;
@@ -1873,7 +1874,7 @@ class Game {
       ["naga", "mecha", "ufo", "sembrani"].includes(d.mount)
         ? Math.max(30, this.cameraDistance)
         : this.cameraDistance;
-    const focus = this.altitude + (d.riding && d.mount === "mecha" ? 3 : 1.4);
+    const focus = this.altitude + (this.isFlying || this.coast?.boating ? 0 : this.world.groundHeight(d.x, d.z)) + (d.riding && d.mount === "mecha" ? 3 : 1.4);
     const flat = Math.cos(this.cameraPitch) * mountDistance;
     const target = new THREE.Vector3(
       d.x + Math.sin(this.cameraYaw) * flat,
@@ -1891,13 +1892,14 @@ class Game {
   updateLight() {
     const d = this.state.data,
       fx = Math.sin(this.facing),
-      fz = Math.cos(this.facing);
+      fz = Math.cos(this.facing),
+      groundY = this.isFlying ? 0 : this.world.groundHeight(d.x, d.z);
     this.flashlight.visible = this.flashOn;
     this.flashBeam.visible =
       this.flashOn && this.state.isNight && this.altitude < 5;
-    this.flashlight.position.set(d.x + 0.4, this.altitude + 1.8, d.z);
-    this.flashlight.target.position.set(d.x + fx * 15, 0.35, d.z + fz * 15);
-    this.flashBeam.position.set(d.x + fx * 7.5, 1.2, d.z + fz * 7.5);
+    this.flashlight.position.set(d.x + 0.4, this.altitude + groundY + 1.8, d.z);
+    this.flashlight.target.position.set(d.x + fx * 15, groundY + 0.35, d.z + fz * 15);
+    this.flashBeam.position.set(d.x + fx * 7.5, groundY + 1.2, d.z + fz * 7.5);
     this.flashBeam.quaternion.setFromUnitVectors(
       new THREE.Vector3(0, -1, 0),
       new THREE.Vector3(fx, -0.06, fz).normalize(),
@@ -1910,8 +1912,8 @@ class Game {
     d.x = spot.x;
     d.z = spot.z;
     this.altitude = 0;
-    this.player.position.set(d.x, 0, d.z);
-    this.bike?.position.set(d.x, 0, d.z);
+    this.player.position.set(d.x, this.world.groundHeight(d.x, d.z), d.z);
+    this.bike?.position.set(d.x, this.world.groundHeight(d.x, d.z), d.z);
   }
   pickTarget(clientX, clientY) {
     if (this.spirit?.active) {

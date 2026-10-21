@@ -1,6 +1,7 @@
 import { WorldDamage } from "./world-damage.js";
 import { buildCoastWorld } from "./coast-world.js";
 import { WORLD_BOUNDS, coastLand } from "./coast-rules.js";
+import { coastGroundHeight } from "./coast-layout.js";
 import { buildFrontierWorld, frontierClearing } from "./frontier-world.js";
 import { LivingWater } from "./living-water.js";
 import { buildRuralWorld } from "./rural-world.js";
@@ -37,6 +38,7 @@ export class World {
     this.houses = [];
     this.trees = [];
     this.flightObstacles = [];
+    this.sceneryHills = [];
     this.buildingFootprints = [];
     this.ricePlots = [];
     this.lamps = [];
@@ -468,6 +470,13 @@ export class World {
         1,
       );
       hill.scale.y = range(0.65, 1.35);
+      // The old southern backdrop is now playable coast. Keep its full volume
+      // beyond the new shore and the player's camera, not inside the harbor.
+      const radius = hill.geometry.parameters.radius;
+      if (hill.position.x + radius > -100 && hill.position.x - radius < WORLD_BOUNDS.maxX + 50 &&
+          hill.position.z + radius > 250 && hill.position.z - radius < WORLD_BOUNDS.maxZ + 50)
+        hill.position.z = WORLD_BOUNDS.maxZ + radius + 80;
+      this.sceneryHills.push({x: hill.position.x, z: hill.position.z, radius});
     }
   }
   buildVillage() {
@@ -1156,6 +1165,9 @@ export class World {
         Math.abs(x - c.x) < c.w + r &&
         Math.abs(z - c.z) < c.d + r,
     );
+  }
+  groundHeight(x, z) {
+    return coastGroundHeight(x, z);
   }
   zone(x, z) {
     return (

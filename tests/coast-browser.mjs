@@ -51,9 +51,9 @@ try {
     return (
       g.enemies.filter((e) => e.def.id === "buto-ijo").length === 1 &&
       [
-        [20, 335],
-        [-8, 352],
-        [-24, 400],
+        [-6, 335],
+        [-8, 355],
+        [-24, 396],
         [-24, 315],
         [30, 446],
         [84, 330],
@@ -62,7 +62,7 @@ try {
       ].every(([x, z]) => g.world.canMove(x, z))
     );
   });
-  await move(20, 335);
+  await move(-6, 335);
   await interact();
   await check(
     "captain starts lighthouse quest",
@@ -76,8 +76,8 @@ try {
     () => !__ronda.coast.boating,
   );
   for (const p of [
-    [-8, 352],
-    [-24, 400],
+    [-8, 355],
+    [-24, 396],
     [-24, 315],
   ]) {
     await move(...p);
@@ -207,7 +207,7 @@ try {
     "Buto Ijo works as an almanac companion",
     () => !!__ronda.companionModel.userData.body,
   );
-  await move(20, 335);
+  await move(-6, 335);
   await interact();
   await page.locator('[data-action="coast-claim"]').click();
   await check(

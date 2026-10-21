@@ -1,6 +1,6 @@
 # Kampung Nelayan Karang Tirta
 
-Ekspansi daratan di selatan Sukarame, terhubung melalui jalan pesisir. Buka **Jurnal → Tandai Karang Tirta**, lalu temui **Bu Sari (20, 335)**. Simpanan lama otomatis memperoleh progres pesisir kosong; inventaris dan quest sebelumnya tetap dipertahankan.
+Ekspansi daratan di selatan Sukarame, terhubung melalui jalan pesisir. Buka **Jurnal → Tandai Karang Tirta**, lalu temui **Bu Sari (−6, 335)** di pelelangan sebelah barat jalan utama. Simpanan lama otomatis memperoleh progres pesisir kosong; inventaris dan quest sebelumnya tetap dipertahankan.
 
 ## Tempat dan aktivitas
 
@@ -12,7 +12,7 @@ Ekspansi daratan di selatan Sukarame, terhubung melalui jalan pesisir. Buka **Ju
 
 ## Rangkaian quest
 
-1. **Mercusuar padam.** Bicara dengan Bu Sari. Ambil lensa (−8, 352), dinamo (−24, 400), dan kabel (−24, 315). Pasang komponen di pintu mercusuar (30, 446). Hadiah 100 koin dan 50 XP; perahu penyelamat tersedia.
+1. **Mercusuar padam.** Bicara dengan Bu Sari. Ambil lensa (−8, 355), dinamo (−24, 396), dan kabel (−24, 315). Pasang komponen di pintu mercusuar (30, 446). Hadiah 100 koin dan 50 XP; perahu penyelamat tersedia.
 2. **Nelayan di tengah teluk.** Naik perahu di dermaga, selamatkan Pak Darto (133, 373) dan Mas Seno (244, 475), lalu antar ke dermaga utama. Hadiah 150 koin, 80 XP, dan kepemilikan perahu.
 3. **Kapal tanpa awak.** Sandar di dermaga pulau (161, 420), ambil Segel Samudra dari kapal (195, 440), lalu kalahkan atau tangkap Buto Ijo saat malam. Kembali kepada Bu Sari dan serahkan segel. Hadiah 250 koin, 6 sari gaib, 100 XP, serta lampu hijau perahu. Dialog segel menghubungkan kisah ini dengan Ratu Selatan.
 
@@ -43,3 +43,6 @@ Model hantu lain tidak diubah pada ekspansi ini.
 - `npm run test:coast`: alur browser lengkap, kendali perahu, penyelamatan, tangkap Buto, pendamping, pelelangan, tampilan mobile, dan reload di laut. Server default `http://127.0.0.1:5176`; dapat diganti melalui `COAST_TEST_URL`.
 - `tests/spirit-browser.mjs`: regresi quest Sembrani dan alam gaib; server dapat diganti melalui `SPIRIT_TEST_URL`.
 - `npm run build`: bundle produksi dan cache aset PWA.
+- `npm run test:coast-layout`: memastikan rumah dan atap lapak tidak menimpa jalan, jalur masuk serta akses dermaga bebas geometri penghalang, lantai dermaga berada di atas puncak gelombang, dan pemain mengikuti ketinggian ramp.
+
+Tata letak pesisir memakai `src/coast-layout.js` sebagai sumber bersama untuk bangunan, NPC, penanda quest, dan permukaan dermaga. Rumah, pelelangan, warung, tiang lampu, dan komponen quest berada di sisi jalan. Bukit latar selatan dipindahkan melewati batas wilayah baru. Kedua dermaga memiliki lantai setinggi 0,65 meter dan ramp; posisi kaki pemain dan mount mengikuti lantainya.

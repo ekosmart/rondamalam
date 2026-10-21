@@ -4,6 +4,7 @@ export class IncidentNavigation {
     this.game = game;
     this.step = 4;
     this.size = 141;
+    this.height = 201;
     this.cache = new Map();
   }
   clear(x, z) {
@@ -38,7 +39,7 @@ export class IncidentNavigation {
       for (let dx = -3; dx <= 3; dx++) {
         const xx = x + dx,
           zz = z + dz;
-        if (xx < 0 || xx >= this.size || zz < 0 || zz >= this.size) continue;
+        if (xx < 0 || xx >= this.size || zz < 0 || zz >= this.height) continue;
         const id = zz * this.size + xx,
           q = this.point(id),
           d = Math.hypot(q.x - p.x, q.z - p.z);
@@ -122,7 +123,7 @@ export class IncidentNavigation {
           xx < 0 ||
           zz < 0 ||
           xx >= this.size ||
-          zz >= this.size ||
+          zz >= this.height ||
           closed.has(n) ||
           !this.valid(n)
         )

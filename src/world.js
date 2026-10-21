@@ -1,4 +1,6 @@
 import { WorldDamage } from "./world-damage.js";
+import { buildCoastWorld } from "./coast-world.js";
+import { WORLD_BOUNDS, coastLand } from "./coast-rules.js";
 import { buildFrontierWorld, frontierClearing } from "./frontier-world.js";
 import { LivingWater } from "./living-water.js";
 import { buildRuralWorld } from "./rural-world.js";
@@ -49,6 +51,7 @@ export class World {
     buildRuralWorld(this);
     buildIncidentWorld(this);
     buildFrontierWorld(this);
+    this.coast = buildCoastWorld(this);
     this.buildNature();
     this.livingWater = new LivingWater(this);
     this.buildDetails();
@@ -1137,10 +1140,12 @@ export class World {
     return { x: 0, z: 12 };
   }
   canMove(x, z, r = 0.55) {
-    if (Math.abs(x) > WORLD_SIZE / 2 - 5 || Math.abs(z) > WORLD_SIZE / 2 - 5)
+    if (x < WORLD_BOUNDS.minX + 2 || x > WORLD_BOUNDS.maxX - 2 ||
+        z < WORLD_BOUNDS.minZ + 2 || z > WORLD_BOUNDS.maxZ - 2)
       return false;
+    if (z > 285 && !coastLand(x, z, r)) return false;
     if (
-      x > 143 &&
+      z <= 285 && x > 143 &&
       x < 167 &&
       ![-130, 30, 143].some((b) => Math.abs(z - b) < 2.7)
     )

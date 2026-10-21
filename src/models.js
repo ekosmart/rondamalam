@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { makeButoIjo } from "./coast-models.js";
 import { ELEMENTS } from "./data.js";
 import { makeKerisMpuGandring } from "./keris-mpu-gandring.js";
 
@@ -378,6 +379,7 @@ export function makeBicycle(id = "onthel", color = "#637e6c") {
   return g;
 }
 export function makeGhost(def, companion = false) {
+  if (def.id === "buto-ijo") return makeButoIjo(companion);
   const g = new THREE.Group(),
     body = new THREE.Group();
   g.add(body);

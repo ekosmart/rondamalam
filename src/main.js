@@ -5,6 +5,8 @@ import "./weather.css";
 import { Frontier } from "./frontier.js";
 import { Expeditions } from "./expeditions.js";
 import { SpiritRealm } from "./spirit-realm.js";
+import { Coast } from "./coast.js";
+import { WORLD_BOUNDS } from "./coast-rules.js";
 import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
 import { RuralLife } from "./rural-life.js";
@@ -280,6 +282,7 @@ class Game {
     this.expeditions = new Expeditions(this);
     this.spirit = new SpiritRealm(this);
     this.weather = new VillageWeather(this);
+    this.coast = new Coast(this);
     this.enemies.forEach((e) => scaleEnemy(e, this.state.data.level));
     this.bindControls();
     this.applyQuality();
@@ -391,7 +394,7 @@ class Game {
     }
   }
   spawnCharacters() {
-    for (const def of GHOSTS) for (let copy = 0; copy < 3; copy++) {
+    for (const def of GHOSTS) for (let copy = 0; copy < (def.copies ?? 3); copy++) {
       let home = { x: def.x, z: def.z };
       if (copy > 0) {
         for (let attempt = 0; attempt < 80; attempt++) {
@@ -410,6 +413,7 @@ class Game {
         pos: model.position,
         home,
         spawnId: def.id + "-" + copy,
+        aimHeight: def.aimHeight ?? 1.5,
         habitat: { x: def.x, z: def.z },
         name: def.name,
         hp: def.hp,
@@ -643,6 +647,7 @@ class Game {
   action(action, args = {}) {
     if (this.pwa?.action(action)) return;
     if (this.started && this.spirit?.action(action, args)) return;
+    if (this.started && this.coast?.action(action, args)) return;
     if (this.started && this.expeditions?.action(action, args)) return;
     if (this.started && this.frontier?.action(action, args)) return;
     const st = this.state,
@@ -1033,6 +1038,7 @@ class Game {
     const it = this.interactable;
     if (!it) return;
     if (
+      this.coast.interact(it) ||
       this.spirit.interact(it) ||
       this.weather.interact(it) ||
       this.frontier.interact(it) ||
@@ -1163,6 +1169,7 @@ class Game {
         label: "Ritual Mustika Bumi · 6 sari gaib",
       });
     candidates.push(
+      ...(this.coast?.interactions() || []),
       ...(this.spirit?.interactions() || []),
       ...(this.life?.interactions() || []),
       ...(this.incidents?.interactions() || []),
@@ -1186,6 +1193,7 @@ class Game {
       .sort((a, b) => distance(a.pos, origin) - distance(b.pos, origin));
   }
   attack() {
+    if (this.coast?.boating) return;
     if (this.spirit?.active) { this.spirit.attack(); return; }
     if (this.expeditions?.active || this.frontier?.mountedAttack()) return;
     if (this.sports?.active) {
@@ -1423,6 +1431,7 @@ class Game {
     if (e.hp <= 0) this.defeat(e, false, source);
   }
   defeat(e, caught = false, source = "player") {
+    this.coast?.defeated(e);
     if (e.dino) {
       this.frontier.wildDefeated(e);
       if (this.lockedTarget === e) this.lockedTarget = null;
@@ -1538,6 +1547,7 @@ class Game {
     return { x: x / Math.max(1, len), z: z / Math.max(1, len), amount: Math.min(1, len) };
   }
   updatePlayer(dt) {
+    if (this.coast?.moveBoat(dt)) return;
     const d = this.state.data;
     let { x, z, amount } = this.movementInput();
     const moving = x !== 0 || z !== 0;
@@ -1564,8 +1574,8 @@ class Game {
       const nx = d.x + xx * speed * dt,
         nz = d.z + zz * speed * dt;
       if (this.isFlying) {
-        d.x = clamp(nx, -278, 278);
-        d.z = clamp(nz, -278, 278);
+        d.x = clamp(nx, WORLD_BOUNDS.minX + 2, WORLD_BOUNDS.maxX - 2);
+        d.z = clamp(nz, WORLD_BOUNDS.minZ + 2, WORLD_BOUNDS.maxZ - 2);
       } else {
         if (this.world.canMove(nx, d.z)) d.x = nx;
         if (this.world.canMove(d.x, nz)) d.z = nz;
@@ -1688,6 +1698,7 @@ class Game {
     this.audio.play("hurt");
     this.cameraShake = 0.22;
     if (d.hp <= 0) {
+      this.coast?.cancelBoat();
       this.frontier.cancelFishing();
       this.frontier.endCelebration();
       this.altitude = 0;
@@ -2032,6 +2043,7 @@ class Game {
         this.frontier.update(dt, this.elapsed);
         this.weather.update(dt);
         this.spirit.updateVillage(dt, this.elapsed);
+        this.coast.update(dt, this.elapsed);
         this.ranged.update(dt);
         this.updateTarget();
         this.mountCombat.update(dt);

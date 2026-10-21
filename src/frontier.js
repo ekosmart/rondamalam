@@ -251,6 +251,8 @@ export class Frontier {
   }
   fishingSpot() {
     const d = this.d;
+    const coastal = FISHING_SPOTS.find(p => p.id.startsWith("coast-") && distance(d, p) < 5);
+    if (coastal) return coastal;
     if (this.g.weather?.flooded)
       return {
         name: "Banjir Sukarame",

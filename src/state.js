@@ -1,5 +1,6 @@
 import { freshWeather, restoreWeather } from "./weather-rules.js";
 import { freshSpirit, restoreSpirit } from "./spirit-rules.js";
+import { freshCoast, restoreCoast, WORLD_BOUNDS, coastLand } from "./coast-rules.js";
 import { freshFrontier, restoreFrontier } from "./frontier-rules.js";
 import { patrolPosts, POST_POOL } from "./layout.js";
 import { freshIncidents, restoreIncidents } from "./incident-rules.js";
@@ -15,6 +16,7 @@ export function freshState() {
     incidents: freshIncidents(),
     rural: { cared: [] },
     spirit: freshSpirit(),
+    coast: freshCoast(),
     frontier: freshFrontier(),
     weather: freshWeather(),
     village: { treasury: 800, damage: 0 },
@@ -108,6 +110,7 @@ export class GameState {
         frontier: restoreFrontier(saved.frontier),
         weather: restoreWeather(saved.weather),
         spirit: restoreSpirit(saved.spirit),
+        coast: restoreCoast(saved.coast),
         rural: {
           ...base.rural,
           ...saved.rural,
@@ -135,8 +138,9 @@ export class GameState {
       ])
         if (!Number.isFinite(d[key])) d[key] = base[key];
       d.time = ((d.time % 1440) + 1440) % 1440;
-      d.x = clamp(d.x, -280, 280);
-      d.z = clamp(d.z, -280, 280);
+      d.x = clamp(d.x, WORLD_BOUNDS.minX, WORLD_BOUNDS.maxX);
+      d.z = clamp(d.z, WORLD_BOUNDS.minZ, WORLD_BOUNDS.maxZ);
+      if (d.z > 285 && !coastLand(d.x, d.z)) { d.x = 84; d.z = 330; }
       d.posts = Array.isArray(d.posts)
         ? d.posts.filter((id) => POST_POOL.some((p) => p.id === id))
         : [];

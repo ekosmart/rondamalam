@@ -158,7 +158,7 @@ test("broken saves recover, and invalid content ids are removed", () => {
   assert.equal(t.data.time, 1152);
 });
 test("ghost roster contains the PRD roster and separate homes outside the safe zone", () => {
-  assert.equal(GHOSTS.length, 21);
+  assert.equal(GHOSTS.length, 22);
   assert.equal(GHOSTS.filter((g) => g.global).length, 5);
   for (const g of GHOSTS) {
     assert.ok(Math.hypot(g.x, g.z) > g.radius + 23);

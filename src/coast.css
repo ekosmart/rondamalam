@@ -1,0 +1,72 @@
+#coast-hud {
+  position: absolute;
+  left: 50%;
+  bottom: 85px;
+  transform: translateX(-50%);
+  width: min(480px, 90vw);
+  padding: 12px 16px;
+  background: #153d43ee;
+  border: 1px solid #c6b78688;
+  border-radius: 8px;
+  color: #efe4c6;
+  pointer-events: auto;
+}
+#coast-hud.hidden {
+  display: none;
+}
+#coast-hud small,
+#coast-hud strong,
+#coast-hud span {
+  display: block;
+}
+#coast-hud small {
+  color: #9dd5d3;
+  letter-spacing: 1.5px;
+  font-size: 10px;
+}
+#coast-hud strong {
+  font:
+    600 22px "Cormorant Garamond",
+    serif;
+  margin: 3px 0;
+}
+#coast-hud span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+#coast-hud nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+#coast-hud button {
+  padding: 7px 10px;
+  font-size: 12px;
+  min-height: 36px;
+}
+#hud:has(#coast-hud:not(.hidden)) #toast {
+  bottom: 250px;
+}
+#hud:has(#coast-hud:not(.hidden)) #interaction {
+  bottom: 310px;
+}
+@media (max-width: 700px) {
+  #coast-hud {
+    bottom: 195px;
+    width: calc(100vw - 24px);
+    padding: 8px 10px;
+  }
+  #coast-hud strong {
+    font-size: 18px;
+  }
+  #coast-hud span {
+    font-size: 10px;
+  }
+  #hud:has(#coast-hud:not(.hidden)) #toast {
+    bottom: 365px;
+  }
+  #hud:has(#coast-hud:not(.hidden)) #interaction {
+    bottom: 145px;
+  }
+}

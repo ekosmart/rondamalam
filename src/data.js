@@ -12,6 +12,10 @@ export const ELEMENTS = {
   Gaib: "#c4a0e7",
 };
 export const ZONES = [
+  { name: "Karang Tirta", sub: "Kampung nelayan, pelelangan, dan dermaga.", x: 20, z: 335, r: 57, icon: "home" },
+  { name: "Mercusuar Karang Tirta", sub: "Cahaya penuntun menuju teluk.", x: 30, z: 440, r: 42, icon: "home" },
+  { name: "Pulau Karang", sub: "Langkah raksasa terdengar dari kapal tua.", x: 190, z: 420, r: 32, icon: "ghost" },
+  { name: "Teluk Karang Tirta", sub: "Dua nelayan menunggu pertolongan.", x: 170, z: 397, r: 130, icon: "water" },
   {
     name: "Pos Ronda",
     sub: "Tempat pulang. Tempat bertahan.",
@@ -127,6 +131,12 @@ export const ZONES = [
 ];
 export const POSTS = patrolPosts(1);
 export const GHOSTS = [
+  {
+    id: "buto-ijo", name: "Buto Ijo", region: "Pulau Karang · Karang Tirta",
+    element: "Tanah", kind: "tall", color: "#679d31", hp: 460, power: 24,
+    x: 190, z: 420, radius: 23, copies: 1, aimHeight: 4,
+    story: "Raksasa hijau bertaring yang menjaga kapal tanpa awak. Langkahnya mengguncang Pulau Karang saat malam turun.",
+  },
   {
     id: "pocong",
     name: "Pocong",

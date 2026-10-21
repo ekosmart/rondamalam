@@ -200,8 +200,8 @@ export class UI {
       document.querySelector("#worldmap").addEventListener("click", (e) => {
         const c = e.currentTarget,
           r = c.getBoundingClientRect();
-        const x = ((e.clientX - r.left) / r.width) * 580 - 290,
-          z = ((e.clientY - r.top) / r.height) * 580 - 290;
+        const x = ((e.clientX - r.left) / r.width) * 820 - 410,
+          z = ((e.clientY - r.top) / r.height) * 820 - 290;
         this.game.waypoint = { x, z };
         this.drawMap(c, true);
         this.toast("Penanda tujuan dipasang. Ikuti arah pada kompas.");
@@ -356,7 +356,7 @@ export class UI {
       )}</div><div class="note-box">Api + Angin membentuk Tornado Api. Air + Tanah membentuk Akar Pasang. Elemen sama memperkuat resonansi. Pendamping memperoleh EXP setiap pertarungan; awakening membuka serangan area yang lebih besar.</div>`;
     }
     if (type === "journal")
-      return `${this.game.spirit?.journal() || ""}<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
+      return `${this.game.coast?.journal() || ""}${this.game.spirit?.journal() || ""}<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
         (q) => {
           const status = d.quests[q.id],
             progress = Math.min(q.target, d.stats[q.stat]);
@@ -364,7 +364,7 @@ export class UI {
         },
       ).join("")}</div>`;
     if (type === "map")
-      return `<div class="map-layout"><div class="map-canvas-wrap"><canvas id="worldmap" width="800" height="800" aria-label="Peta desa, klik untuk menetapkan tujuan"></canvas><div class="map-scale">0 ───── 100 m <span>U ↑</span></div></div><aside class="map-legend"><span class="eyebrow">LIMA TITIK RONDA · BERGANTI SETIAP MALAM</span>${st.patrolPosts.map((p, i) => button("post-waypoint", `<b>${d.posts.includes(p.id) ? "✓" : String(i + 1).padStart(2, "0")}</b><span>${p.name}<small>${Math.round(distance(d, p))} meter</small></span>`, "map-post", `data-id="${p.id}"`)).join("")}<div class="legend-items"><span><i class="legend-dot player"></i> Kamu</span><span><i class="legend-dot safe"></i> Pos ronda</span><span><i class="legend-dot ghost"></i> Wilayah roh</span><span><i class="legend-dot portal"></i> Portal Kliwon</span></div><p>Space Z (78, 225), Dr John / Sukarame Park (−230, 212), sarang meteor (−244, 168), ladang jagung/gandum di selatan, dan rumah keluarga (15, −2). Pabrik Payung Korp / William berada di timur laut (227, −212), E.T. dan suar di sudut tenggara (259, 224). Peternakan Pak Mulyono di barat daya (−112, 207). Gereja Santa Maria (29, −179), Masjid Raya, dan pesantren berada di utara. Rumah Ki Wulung di barat laut. Panitia Tarkam di sisi barat lapangan; Dimas menunggu di simpang dekat pos. Klik peta untuk menandai tujuan. Jelajahi desa dengan <kbd>B</kbd> untuk naik sepeda.</p></aside></div>`;
+      return `<div class="map-layout"><div class="map-canvas-wrap"><canvas id="worldmap" width="800" height="800" aria-label="Peta desa, klik untuk menetapkan tujuan"></canvas><div class="map-scale">0 ───── 100 m <span>U ↑</span></div></div><aside class="map-legend"><span class="eyebrow">LIMA TITIK RONDA · BERGANTI SETIAP MALAM</span>${st.patrolPosts.map((p, i) => button("post-waypoint", `<b>${d.posts.includes(p.id) ? "✓" : String(i + 1).padStart(2, "0")}</b><span>${p.name}<small>${Math.round(distance(d, p))} meter</small></span>`, "map-post", `data-id="${p.id}"`)).join("")}<div class="legend-items"><span><i class="legend-dot player"></i> Kamu</span><span><i class="legend-dot safe"></i> Pos ronda</span><span><i class="legend-dot ghost"></i> Wilayah roh</span><span><i class="legend-dot portal"></i> Portal Kliwon</span></div><p>Karang Tirta (20, 335) tersambung melalui jalan pesisir selatan. Dermaga (84, 330), mercusuar (30, 440), dan Pulau Karang (190, 420). Temui Bu Sari untuk quest dan perahu motor. Space Z (78, 225), Dr John / Sukarame Park (−230, 212), sarang meteor (−244, 168), ladang jagung/gandum di selatan, dan rumah keluarga (15, −2). Pabrik Payung Korp / William berada di timur laut (227, −212), E.T. dan suar di sudut tenggara (259, 224). Peternakan Pak Mulyono di barat daya (−112, 207). Gereja Santa Maria (29, −179), Masjid Raya, dan pesantren berada di utara. Rumah Ki Wulung di barat laut. Panitia Tarkam di sisi barat lapangan; Dimas menunggu di simpang dekat pos. Klik peta untuk menandai tujuan. Jelajahi desa dengan <kbd>B</kbd> untuk naik sepeda.</p></aside></div>`;
     return "";
   }
   weaponCard(w, craft) {
@@ -652,9 +652,9 @@ export class UI {
       s = canvas.width,
       st = this.game.state,
       d = st.data;
-    const span = full ? 580 : 165,
+    const span = full ? 820 : 165,
       cx = full ? 0 : d.x,
-      cz = full ? 0 : d.z,
+      cz = full ? 120 : d.z,
       scale = s / span;
     const X = (x) => (x - cx) * scale + s / 2,
       Y = (z) => (z - cz) * scale + s / 2;
@@ -663,7 +663,7 @@ export class UI {
     ctx.fillRect(0, 0, s, s);
     ctx.strokeStyle = "rgba(206,217,184,.06)";
     ctx.lineWidth = 1;
-    for (let n = -300; n <= 300; n += 25) {
+    for (let n = -400; n <= 550; n += 25) {
       ctx.beginPath();
       ctx.moveTo(X(n), 0);
       ctx.lineTo(X(n), s);
@@ -674,7 +674,14 @@ export class UI {
       ctx.stroke();
     }
     ctx.fillStyle = "#385b53";
-    ctx.fillRect(X(143), 0, 24 * scale, s);
+    ctx.fillRect(X(143), Y(-280), 24 * scale, 565 * scale);
+    ctx.fillStyle = "#387383";
+    ctx.fillRect(X(60), Y(285), 220 * scale, 235 * scale);
+    ctx.fillStyle = "#b5aa7e";
+    ctx.beginPath(); ctx.arc(X(190), Y(420), 27 * scale, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#ab9268";
+    ctx.fillRect(X(60), Y(326), 28 * scale, 8 * scale);
+    ctx.fillRect(X(158), Y(416), 14 * scale, 8 * scale);
     for (const r of this.game.world.roads) {
       ctx.fillStyle = "#686a51";
       ctx.fillRect(

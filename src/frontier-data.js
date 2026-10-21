@@ -8,6 +8,9 @@ export const CROPS = [
   { id: "wheat", name: "Ladang Gandum", x: -65, z: 245, w: 46, d: 32 },
 ];
 export const FISHING_SPOTS = [
+  { id: "coast-dock", name: "Dermaga Karang Tirta", x: 78, z: 332, waterX: 85, waterZ: 340 },
+  { id: "coast-island", name: "Pulau Karang", x: 188, z: 444, waterX: 188, waterZ: 452 },
+  { id: "coast-cape", name: "Tanjung Mercusuar", x: 58, z: 460, waterX: 66, waterZ: 460 },
   ...[-235, -190, -80, -35, 80, 195, 255].flatMap((z, i) => [
     {
       id: "river-w-" + i,

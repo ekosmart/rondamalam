@@ -17,7 +17,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "assetlinks": "node scripts/generate-assetlinks.mjs",
     "test:frontier": "node tests/frontier-browser.mjs",
-    "test:weather": "node tests/weather-fishing-browser.mjs"
+    "test:weather": "node tests/weather-fishing-browser.mjs",
+    "test:coast": "node tests/coast-browser.mjs"
   },
   "engines": {
     "node": "22.x"

@@ -19,6 +19,8 @@ import {
   NOTES,
   SPIRIT_STAGES,
   spiritStage,
+  spiritRequest,
+  acceptSpiritRequest,
   gateReason,
   collectSpiritItem,
   playSpiritNote,
@@ -54,7 +56,7 @@ export class SpiritRealm {
     this.hud.id = "spirit-hud";
     this.hud.className = "hidden";
     document.querySelector("#hud").append(this.hud);
-    this.hud.innerHTML = `<div class="spirit-content"></div><nav class="spirit-return">${btn("spirit-exit", "Pulang ke pantai")}${btn("spirit-home", "Kembali ke desa")}</nav>`;
+    this.hud.innerHTML = `<div class="spirit-content"></div><nav class="spirit-return">${btn("journal", "Jurnal · J")}${btn("spirit-exit", "Pulang ke pantai")}${btn("spirit-home", "Kembali ke desa")}</nav>`;
     this.hudContent = this.hud.querySelector(".spirit-content");
     this.buildBeach();
   }
@@ -62,18 +64,72 @@ export class SpiritRealm {
     return this.g.state.data.spirit;
   }
   journal() {
-    const [title, desc] = SPIRIT_STAGES[spiritStage(this.s)];
-    return `<div class="note-box"><span class="eyebrow">SEMBRANI · KERATON SAMUDRA SUNYI</span><h3>${title}</h3><p>${desc}</p><small>Cahaya ${this.s.sparks.length}/3 · Pusaka ${this.s.relics.length}/3 · ${this.s.blessed ? "Restu diperoleh" : "Restu belum diperoleh"}</small><ol>${SPIRIT_STAGES.slice(
-      0,
-      8,
+    const s = this.s;
+    const quests = [
+      [
+        1,
+        s.started,
+        s.crossed,
+        "Juru Gerbang Sukma",
+        `Cahaya ${s.sparks.length}/3. ${s.sparks.length === 3 ? SPIRIT_STAGES[2][1] : ""}`,
+      ],
+      [
+        4,
+        s.welcomed,
+        s.relics.length === 3,
+        "Juru Keraton",
+        `Pusaka ${s.relics.length}/3`,
+      ],
+      [
+        5,
+        s.melodyAccepted,
+        s.melodySolved,
+        "Juru Keraton",
+        "Kembali ke Juru Keraton setelah gamelan dipulihkan.",
+      ],
+      [
+        6,
+        s.guardianAccepted,
+        s.blessed,
+        "Juru Keraton",
+        s.bossDefeated
+          ? "Penjaga dikalahkan. Menghadap Ratu Selatan untuk menerima restu dan imbalan."
+          : "Imbalan Ratu: 350 koin, 8 sari gaib, dan restu Sembrani.",
+      ],
+    ];
+    return `<h3 class="section-label">KERATON SAMUDRA SUNYI</h3><div class="quest-list">${quests.map(([i, accepted, done, npc, progress]) => `<div class="journal-quest ${done ? "complete" : ""}"><div><span class="eyebrow">${done ? "SELESAI" : accepted ? "SEDANG BERJALAN" : "TEMUI " + npc.toUpperCase() + " UNTUK MEMINTA QUEST"}</span><h3>${SPIRIT_STAGES[i][0]}</h3><p>${accepted || done ? SPIRIT_STAGES[i][1] : `Bicaralah dengan ${npc}. Misi tersedia setelah urusan sebelumnya selesai.`}</p><small>${accepted || done ? progress : "Belum diterima"}</small></div></div>`).join("")}</div><p>${this.active ? "Juru Keraton berada di depan gerbang (0, 27)." : btn("spirit-waypoint", "Tandai Juru Gerbang")}</p>`;
+  }
+  requestPanel(keeper = false) {
+    const request = spiritRequest(this.s);
+    const offers = {
+      sparks: [
+        "Pulihkan Sukma Sembrani",
+        "Maukah kau memulihkan tiga cahaya leluhur di pantai sambil menunggang Sembrani? Setelahnya lintasi gerbang pada malam Kliwon.",
+      ],
+      relics: [
+        "Tiga Pusaka yang Hilang",
+        "Ratu mengizinkanmu membantu keraton. Maukah kau mencari cawan di taman barat, cermin di pendopo timur, dan mutiara di pemandian barat?",
+      ],
+      melody: [
+        "Gamelan Tanpa Penabuh",
+        "Tiga pusaka sudah kembali. Maukah kau memulihkan gamelan di timur? Ingat urutannya: Ombak, Bulan, Angin, Bintang.",
+      ],
+      guardian: [
+        "Penjaga Palung",
+        "Gamelan sudah bersuara. Bersediakah kau membebaskan Penjaga Palung dari kutukan? Setelah menang, menghadaplah kepada Ratu untuk menerima restu, 350 koin, dan 8 sari gaib.",
+      ],
+    };
+    const offer = (
+      keeper ? request === "sparks" : request && request !== "sparks"
     )
-      .map(
-        ([name], i) =>
-          `<li>${i < spiritStage(this.s) ? "✓ " : i === spiritStage(this.s) ? "→ " : ""}${name}</li>`,
-      )
-      .join(
-        "",
-      )}</ol><p>${btn("spirit-waypoint", "Tandai Pantai Sukma")}</p></div>`;
+      ? offers[request]
+      : null;
+    const [title, desc] = SPIRIT_STAGES[spiritStage(this.s)];
+    frontierPanel(
+      this.g,
+      keeper ? "Juru Gerbang Sukma" : "Juru Keraton",
+      `<div class="dialogue-content"><span class="eyebrow">${offer ? "PERMINTAAN WARGA" : "KABAR ALAM GAIB"}</span><h3>${offer?.[0] || title}</h3><p class="dialogue-line">“${offer?.[1] || desc}”</p>${offer ? btn("spirit-accept", "Saya akan membantu", `data-id="${request}"`) : "<p>Catatan misi tersedia di Jurnal (J).</p>"}${btn("close", "Sampai jumpa")}</div>`,
+    );
   }
   buildBeach() {
     const s = this.g.scene,
@@ -153,18 +209,7 @@ export class SpiritRealm {
         );
         return true;
       }
-      if (!this.s.started) {
-        this.s.started = true;
-        g.state.save();
-      }
-      g.ui.dialogue({
-        name: "Juru Gerbang Sukma",
-        role: "Penjaga lintasan",
-        line:
-          this.s.sparks.length < 3
-            ? "Tiga cahaya leluhur menunggu di pantai. Tunggangi Sembrani dan pulihkan semuanya dengan E. Datanglah ke gerbang pada malam Kliwon."
-            : "Sukma Sembrani telah pulih. Tunggangi ia menuju gerbang. Lintasan pertama memerlukan malam Kliwon; setelah itu jalanmu akan selalu terbuka.",
-      });
+      this.requestPanel(true);
       return true;
     }
     if (it.type === "spirit-spark") {
@@ -278,7 +323,10 @@ export class SpiritRealm {
     g.flightInput = 0;
     g.ui.joystick?.reset();
     Object.assign(d, {
-      ...g.world.nearestLanding(village ? 0 : SPIRIT_GATE.x, village ? 12 : SPIRIT_GATE.z - 6),
+      ...g.world.nearestLanding(
+        village ? 0 : SPIRIT_GATE.x,
+        village ? 12 : SPIRIT_GATE.z - 6,
+      ),
       mount: "sembrani",
       riding: !village,
     });
@@ -463,7 +511,8 @@ export class SpiritRealm {
     this.bossTime = 0;
     this.boss.position.set(0, 0.3, -12);
     this.telegraph.visible = false;
-    this.boss.visible = this.s.melodySolved && !this.s.bossDefeated;
+    this.boss.visible =
+      this.s.melodySolved && this.s.guardianAccepted && !this.s.bossDefeated;
   }
   nearest() {
     if (this.crossing) return null;
@@ -477,7 +526,8 @@ export class SpiritRealm {
       for (const p of RELICS)
         if (!this.s.relics.includes(p.id))
           a.push({ ...p, id: "relic:" + p.id, label: "Pulihkan " + p.name });
-      a.push({ id: "gong", ...GONG, label: "Mainkan gamelan" });
+      if (this.s.melodyAccepted)
+        a.push({ id: "gong", ...GONG, label: "Mainkan gamelan" });
       a.push({
         id: "false-seal",
         x: -18,
@@ -509,13 +559,7 @@ export class SpiritRealm {
         );
         return;
       }
-      this.s.welcomed = true;
-      g.state.save();
-      g.ui.dialogue({
-        name: "Juru Keraton",
-        role: "Tamu dari Alam Manusia",
-        line: "Ratu mengizinkanmu masuk. Ingatan kami dicuri Penjaga Palung. Pulihkan tiga pusaka: cawan di taman barat, cermin di pendopo timur, dan mutiara di pemandian barat. Gamelan akan menunjukkan jalan menuju balairung.",
-      });
+      this.requestPanel();
     } else if (n.id.startsWith("relic:")) {
       if (collectSpiritItem(this.s, "relics", n.id.slice(6))) {
         g.state.save();
@@ -525,7 +569,7 @@ export class SpiritRealm {
             this.s.relics.length +
             "/3. " +
             (this.s.relics.length === 3
-              ? "Dengarkan petunjuk gamelan di timur."
+              ? "Kembali kepada Juru Keraton untuk melapor."
               : ""),
           "success",
         );
@@ -604,6 +648,32 @@ export class SpiritRealm {
   }
   action(action, args = {}) {
     const g = this.g;
+    if (action === "spirit-accept") {
+      const keeper = args.id === "sparks";
+      const nearby = keeper
+        ? !this.active &&
+          !g.expeditions.active &&
+          g.state.data.mounts.includes("sembrani") &&
+          g.altitude <= 12 &&
+          dist(g.state.data, { x: SPIRIT_GATE.x - 7, z: SPIRIT_GATE.z - 4 }) <
+            4.8
+        : this.active && !this.mounted && dist(this.position, GUARD) < 3.4;
+      if (
+        g.ui.panel === "dialogue" &&
+        nearby &&
+        acceptSpiritRequest(this.s, args.id)
+      ) {
+        g.state.save();
+        if (this.active) this.resetBoss();
+        g.ui.close();
+        g.ui.toast(
+          "Quest diterima. Catatan tersedia di Jurnal (J).",
+          "success",
+        );
+        this.updateHUD();
+      }
+      return true;
+    }
     if (action === "spirit-waypoint") {
       if (!this.active) {
         g.waypoint = { ...SPIRIT_GATE };
@@ -624,6 +694,7 @@ export class SpiritRealm {
         !g.ui.panel ||
         dist(this.position, GONG) > 3.4 ||
         this.s.relics.length < 3 ||
+        !this.s.melodyAccepted ||
         this.s.melodySolved
       )
         return true;
@@ -644,7 +715,7 @@ export class SpiritRealm {
         g.state.save();
         g.ui.close();
         this.resetBoss();
-        g.ui.toast("Gamelan menyatu. Penjaga Palung terbangun!", "success");
+        g.ui.toast("Gamelan menyatu. Laporkan kepada Juru Keraton.", "success");
       } else this.gongPanel();
       return true;
     }
@@ -807,26 +878,9 @@ export class SpiritRealm {
   }
   updateHUD() {
     if (!this.active) return;
-    const stage = spiritStage(this.s),
-      [title, desc] = SPIRIT_STAGES[stage],
-      n = this.nearest();
-    const objective = this.crossing
-      ? { x: 0, z: 31 }
-      : stage === 3
-        ? GUARD
-        : stage === 4
-          ? RELICS.find((p) => !this.s.relics.includes(p.id))
-          : stage === 5
-            ? GONG
-            : stage === 6
-              ? this.boss.position
-              : stage === 7
-                ? QUEEN
-                : null;
-    const direction = objective
-      ? `${objective.x < this.position.x ? "←" : "→"} ${Math.round(Math.abs(objective.x - this.position.x))} m · ${objective.z < this.position.z ? "↑" : "↓"} ${Math.round(Math.abs(objective.z - this.position.z))} m`
-      : "";
-    const content = `<div class="spirit-status"><small>ALAM GAIB · KERATON SAMUDRA SUNYI</small><strong>${this.crossing ? "Melintasi laut berkabut" : title}</strong><span>${this.crossing ? "WASD / joystick: ikuti jalan cahaya menuju gerbang." : desc}</span><span>HP ${Math.ceil(this.g.state.data.hp)}/${this.g.state.maxHp} · ${this.mounted ? "Sembrani" : "Berjalan"} · ${direction}</span>${this.boss.visible ? `<label>Penjaga Palung · ${Math.ceil(this.bossHp)}/${this.bossMax}<progress max="${this.bossMax}" value="${this.bossHp}"></progress></label><small>${this.bossPhase === "windup" ? "HINDARI LINGKARAN MERAH" : this.bossPhase === "recovery" ? "CELAH TERBUKA — SERANG" : "Spasi serang · Q pusaka · WASD menghindar"}</small>` : ""}</div><nav>${n ? btn("spirit-interact", n.label + " · E") : ""}${!this.crossing ? btn("mount", this.mounted ? "Turun · B" : "Naik · B") : ""}${this.boss.visible ? btn("attack", "Serang · Spasi") + btn("special", "Pusaka · Q") : ""}${this.s.blessed ? btn("spirit-water", "Tapak · V " + Math.ceil(this.waterCooldown)) + btn("spirit-sight", "Mata · R " + Math.ceil(this.sightCooldown)) : ""}</nav>`;
+    const n = this.nearest();
+    const fighting = this.boss.visible && this.bossPhase !== "idle";
+    const content = `<div class="spirit-status"><span>HP ${Math.ceil(this.g.state.data.hp)}/${this.g.state.maxHp} · ${this.mounted ? "Sembrani" : "Berjalan"}</span>${fighting ? `<label>Penjaga Palung · ${Math.ceil(this.bossHp)}/${this.bossMax}<progress max="${this.bossMax}" value="${this.bossHp}"></progress></label><small>${this.bossPhase === "windup" ? "HINDARI LINGKARAN MERAH" : this.bossPhase === "recovery" ? "CELAH TERBUKA — SERANG" : "Spasi serang · WASD menghindar"}</small>` : ""}</div><nav>${n ? btn("spirit-interact", n.label + " · E") : ""}${!this.crossing ? btn("mount", this.mounted ? "Turun · B" : "Naik · B") : ""}${fighting ? btn("attack", "Serang · Spasi") + btn("special", "Pusaka · Q") : ""}${this.s.blessed ? btn("spirit-water", "Tapak · V " + Math.ceil(this.waterCooldown)) + btn("spirit-sight", "Mata · R " + Math.ceil(this.sightCooldown)) : ""}</nav>`;
     if (content !== this.lastHUDContent) {
       this.hudContent.innerHTML = content;
       this.lastHUDContent = content;
@@ -906,7 +960,7 @@ export class SpiritRealm {
       this.swing ? 1 - this.swing / 0.35 : 0,
     );
     for (const { def, gem } of this.relicModels) {
-      gem.visible = !this.s.relics.includes(def.id);
+      gem.visible = this.s.welcomed && !this.s.relics.includes(def.id);
       gem.rotation.y = t * 0.6;
     }
     for (const { def, model } of this.chests)

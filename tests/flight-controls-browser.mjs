@@ -58,6 +58,23 @@ try {
     assert.equal(await page.evaluate(() => __ronda.cruiseAltitude), 8);
     console.log("PASS click, hold, release and height limits:", mount);
   }
+  for (const [width, height] of [[1440, 960], [390, 844], [360, 640], [320, 568], [844, 390]]) {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(100);
+    assert.ok(await page.evaluate(() => {
+      const controls = document.querySelector('#flight-controls');
+      const box = controls.getBoundingClientRect();
+      const overlaps = other => box.left < other.right && box.right > other.left && box.top < other.bottom && box.bottom > other.top;
+      return controls.textContent.trim() === '' && controls.querySelectorAll('button svg').length === 2
+        && box.width <= 104 && box.height <= 48 && box.left >= 0 && box.bottom <= innerHeight
+        && [...controls.querySelectorAll('button')].every(b => b.getBoundingClientRect().width >= 44)
+        && ['.map-hud', '.skills', '.mobile-pad > button:last-child'].every(selector => {
+          const el = document.querySelector(selector), b = el.getBoundingClientRect();
+          return !b.width || !b.height || !overlaps(b);
+        });
+    }), `icon controls stay compact and clear of map/actions at ${width}x${height}`);
+    console.log('PASS compact icons without overlap:', width, height);
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(400);
   assert.ok(

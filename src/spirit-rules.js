@@ -54,6 +54,8 @@ export const freshSpirit = () => ({
   sparks: [],
   crossed: false,
   welcomed: false,
+  melodyAccepted: false,
+  guardianAccepted: false,
   relics: [],
   melodySolved: false,
   bossDefeated: false,
@@ -88,7 +90,36 @@ export function restoreSpirit(raw) {
   if (s.welcomed) s.crossed = true;
   if (s.crossed) s.sparks = SPARKS.map((x) => x.id);
   if (s.sparks.length) s.started = true;
+  s.melodyAccepted =
+    raw.melodyAccepted === undefined
+      ? s.relics.length === 3
+      : raw.melodyAccepted === true;
+  s.guardianAccepted =
+    raw.guardianAccepted === undefined
+      ? s.melodySolved
+      : raw.guardianAccepted === true;
+  if (s.melodySolved) s.melodyAccepted = true;
+  if (s.bossDefeated) s.guardianAccepted = true;
   return s;
+}
+export function spiritRequest(s) {
+  if (!s.started) return "sparks";
+  if (s.crossed && !s.welcomed) return "relics";
+  if (s.relics.length === 3 && !s.melodyAccepted) return "melody";
+  if (s.melodySolved && !s.guardianAccepted) return "guardian";
+  return null;
+}
+export function acceptSpiritRequest(s, id) {
+  if (!id || id !== spiritRequest(s)) return false;
+  s[
+    {
+      sparks: "started",
+      relics: "welcomed",
+      melody: "melodyAccepted",
+      guardian: "guardianAccepted",
+    }[id]
+  ] = true;
+  return true;
 }
 export function spiritStage(s) {
   if (!s.started) return 0;

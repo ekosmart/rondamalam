@@ -2567,29 +2567,37 @@ kbd {
 }
 #flight-controls {
   position: absolute;
-  right: 28px;
+  right: 34px;
   bottom: 190px;
-  width: 174px;
-  display: grid;
+  display: flex;
   gap: 8px;
-  padding: 12px;
-  border: 1px solid #b7a573;
-  border-radius: 8px;
-  background: #142d2ef2;
   color: #f2e6c6;
   pointer-events: auto;
   z-index: 12;
 }
 #flight-controls.hidden { display: none; }
-#flight-controls button { min-height: 48px; font-size: 16px; touch-action: none; user-select: none; }
-#flight-controls strong, #flight-controls small { text-align: center; font-size: 11px; }
-#flight-controls kbd { margin-left: 8px; }
+#flight-controls button {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #c4bd9277;
+  border-radius: 50%;
+  background: #142d2ed9;
+  color: inherit;
+  touch-action: none;
+  user-select: none;
+}
+#flight-controls button:active { background: #526d61; border-color: #e5d9ad; }
+#flight-controls button:focus-visible { outline: 2px solid #e5d9ad; outline-offset: 3px; }
+#flight-controls svg { pointer-events: none; stroke-width: 2; }
 @media (max-width: 700px) {
-  #flight-controls { right: 10px; bottom: 200px; width: 108px; padding: 7px; gap: 6px; }
-  #flight-controls button { font-size: 14px; padding: 6px; }
-  #flight-controls kbd { display: none; }
-  #flight-controls strong, #flight-controls small { font-size: 9px; }
-  #hud:has(#flight-controls:not(.hidden)) #coast-hud { left: 10px; transform: none; width: calc(100vw - 134px); }
+  #flight-controls { right: 18px; bottom: 240px; }
+  #flight-controls button { width: 44px; height: 44px; }
+}
+@media (max-height: 600px) and (orientation: landscape) {
+  #flight-controls { right: 230px; bottom: 90px; }
 }
 #mount-status {
   position: absolute;

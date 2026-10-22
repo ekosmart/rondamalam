@@ -58,6 +58,8 @@ export const COAST_STAGES = [
 ];
 export const freshCoast = () => ({
   started: false,
+  rescueAccepted: false,
+  wreckAccepted: false,
   parts: [],
   lighthouse: false,
   rescued: [],
@@ -94,7 +96,30 @@ export function restoreCoast(raw) {
   if (s.rescued.length || s.boatOwned) s.lighthouse = true;
   if (s.lighthouse) s.parts = COAST_PARTS.map((x) => x.id);
   if (s.parts.length) s.started = true;
+  s.rescueAccepted =
+    raw.rescueAccepted === undefined
+      ? s.lighthouse
+      : raw.rescueAccepted === true;
+  s.wreckAccepted =
+    raw.wreckAccepted === undefined ? s.boatOwned : raw.wreckAccepted === true;
+  if (s.rescued.length) s.rescueAccepted = true;
+  if (s.relic || s.completed) s.wreckAccepted = true;
   return s;
+}
+export function coastRequest(s) {
+  if (!s.started) return "lighthouse";
+  if (s.lighthouse && !s.rescueAccepted) return "rescue";
+  if (s.boatOwned && !s.wreckAccepted) return "wreck";
+  return null;
+}
+export function acceptCoastRequest(s, id) {
+  if (id !== coastRequest(s) || !id) return false;
+  s[
+    { lighthouse: "started", rescue: "rescueAccepted", wreck: "wreckAccepted" }[
+      id
+    ]
+  ] = true;
+  return true;
 }
 export function coastStage(s) {
   if (s.completed) return 5;
@@ -145,7 +170,7 @@ export function repairLighthouse(d) {
   return true;
 }
 export function deliverFishermen(d, aboard) {
-  if (!d.coast.lighthouse) return false;
+  if (!d.coast.lighthouse || !d.coast.rescueAccepted) return false;
   let changed = false;
   for (const id of aboard)
     if (FISHERMEN.some((p) => p.id === id) && !d.coast.rescued.includes(id)) {

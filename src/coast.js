@@ -12,6 +12,8 @@ import {
   FISHERMEN,
   COAST_STAGES,
   coastStage,
+  coastRequest,
+  acceptCoastRequest,
   coastWater,
   collectCoastPart,
   repairLighthouse,
@@ -134,9 +136,25 @@ export class Coast {
     return this.g.state.data.coast;
   }
   journal() {
-    const stage = coastStage(this.s),
-      [title, desc] = COAST_STAGES[stage];
-    return `<div class="note-box"><span class="eyebrow">EKSPANSI PESISIR · KARANG TIRTA</span><h3>${title}</h3><p>${desc}</p><p>Komponen ${this.s.parts.length}/3 · Nelayan pulang ${this.s.rescued.length}/2 · Perahu ${this.s.boatOwned ? "milikmu" : "belum dimiliki"}</p>${button("coast-waypoint", "Tandai Karang Tirta")}</div>`;
+    const s = this.s;
+    const quests = [
+      [1, s.started, s.lighthouse, `Komponen ${s.parts.length}/3`, "100 koin"],
+      [
+        2,
+        s.rescueAccepted,
+        s.boatOwned,
+        `Nelayan pulang ${s.rescued.length}/2`,
+        "150 koin dan perahu motor",
+      ],
+      [
+        3,
+        s.wreckAccepted,
+        s.completed,
+        `Segel ${s.relic ? "ditemukan" : "belum ditemukan"} · Buto Ijo ${s.butoDefeated ? "teratasi" : "belum teratasi"}`,
+        "250 koin dan 6 sari gaib; laporkan kepada Bu Sari",
+      ],
+    ];
+    return `<h3 class="section-label">KARANG TIRTA · BU SARI</h3><div class="quest-list">${quests.map(([i, accepted, done, progress, reward]) => `<div class="journal-quest ${done ? "complete" : ""}"><div><span class="eyebrow">${done ? "SELESAI" : accepted ? "SEDANG BERJALAN" : "TEMUI BU SARI UNTUK MEMINTA QUEST"}</span><h3>${COAST_STAGES[i][0]}</h3><p>${accepted || done ? COAST_STAGES[i][1] : "Bicaralah dengan Bu Sari di pelelangan. Misi tersedia setelah urusan sebelumnya selesai."}</p><small>${accepted || done ? progress + " · " : ""}${reward}</small></div></div>`).join("")}</div><p>${button("coast-waypoint", "Tandai Bu Sari")}${s.started && !s.completed ? button("coast-next", "Tandai tujuan misi") : ""}</p>`;
   }
   interactions() {
     const g = this.g,
@@ -154,7 +172,11 @@ export class Coast {
             label: "Sandar · " + dock.name,
           });
       for (const f of FISHERMEN)
-        if (!this.s.rescued.includes(f.id) && !this.aboard.includes(f.id))
+        if (
+          this.s.rescueAccepted &&
+          !this.s.rescued.includes(f.id) &&
+          !this.aboard.includes(f.id)
+        )
           choices.push({
             type: "coast-rescue",
             ...f,
@@ -193,7 +215,7 @@ export class Coast {
               ...p,
               label: "Ambil " + p.name,
             });
-      if (this.s.boatOwned && !this.s.relic)
+      if (this.s.boatOwned && this.s.wreckAccepted && !this.s.relic)
         choices.push({
           type: "coast-wreck",
           ...WRECK,
@@ -213,10 +235,6 @@ export class Coast {
     const g = this.g,
       d = g.state.data;
     if (it.type === "coast-captain") {
-      if (!this.s.started) {
-        this.s.started = true;
-        g.state.save();
-      }
       this.captain();
     } else if (it.type === "coast-part") {
       if (collectCoastPart(this.s, it.id)) {
@@ -232,7 +250,7 @@ export class Coast {
         g.state.addXp(50);
         g.state.save();
         g.ui.toast(
-          "Mercusuar menyala! +100 koin. Pinjam perahu di dermaga untuk menolong dua nelayan.",
+          "Mercusuar menyala! +100 koin. Kembali kepada Bu Sari untuk melapor dan meminta pekerjaan lain.",
           "success",
         );
       } else
@@ -246,6 +264,7 @@ export class Coast {
     else if (it.type === "coast-rescue") {
       if (
         this.boating &&
+        this.s.rescueAccepted &&
         this.s.lighthouse &&
         !this.s.rescued.includes(it.id) &&
         !this.aboard.includes(it.id)
@@ -258,7 +277,7 @@ export class Coast {
         );
       }
     } else if (it.type === "coast-wreck") {
-      if (this.s.boatOwned) {
+      if (this.s.boatOwned && this.s.wreckAccepted) {
         this.s.relic = true;
         g.state.save();
         g.ui.dialogue({
@@ -280,10 +299,29 @@ export class Coast {
   captain() {
     const g = this.g,
       [title, desc] = COAST_STAGES[coastStage(this.s)];
+    const request = coastRequest(this.s);
+    const offers = {
+      lighthouse: [
+        COAST_STAGES[1][0],
+        "Mercusuar kami padam. Bisakah kau mengumpulkan tiga komponen lalu memperbaikinya?",
+        "100 koin",
+      ],
+      rescue: [
+        COAST_STAGES[2][0],
+        "Terima kasih sudah menyalakan mercusuar. Darto dan Seno belum pulang. Maukah kau menjemput mereka dengan perahu kami?",
+        "150 koin dan perahu motor",
+      ],
+      wreck: [
+        COAST_STAGES[3][0],
+        "Kedua nelayan sudah selamat. Ada kapal tua di Pulau Karang yang dijaga Buto Ijo. Maukah kau menyelidikinya dan membawa segelnya kepadaku?",
+        "250 koin dan 6 sari gaib",
+      ],
+    };
+    const offer = offers[request];
     frontierPanel(
       g,
       "Bu Sari · Karang Tirta",
-      `<p class="frontier-lead">${desc}</p><h3>${title}</h3><p>${this.s.lighthouse ? "Mercusuar sudah menyala." : "Ambil lensa di gudang (−8, 355), dinamo di bengkel (−24, 396), dan kabel pelelangan (−24, 315)."} Nelayan selamat: ${this.s.rescued.length}/2.</p>${this.s.boatOwned && this.s.relic && this.s.butoDefeated && !this.s.completed ? button("coast-claim", "Serahkan segel & selesaikan quest") : ""}<p>${this.s.completed ? "Segel akan dikembalikan kepada Ratu Selatan. Terima kasih telah memulihkan pelabuhan." : ""}</p><h3>Pelelangan ikan</h3><p>Jual hasil pancing dari seluruh Sukarame. Catatan dan rekor ikan tetap tersimpan.</p>${button("coast-sell", "Jual seluruh ikan")}<p>${button("coast-next", "Tandai tujuan quest berikutnya")}</p>`,
+      `<div class="dialogue-content"><span class="eyebrow">${offer ? "PERMINTAAN WARGA" : "KABAR PELABUHAN"}</span><h3>${offer?.[0] || title}</h3><p class="dialogue-line">“${offer?.[1] || desc}”</p>${offer ? `<p>Imbalan: ${offer[2]}</p>${button("coast-accept", "Saya akan membantu", `data-id="${request}"`)}` : ""}${this.s.wreckAccepted && this.s.boatOwned && this.s.relic && this.s.butoDefeated && !this.s.completed ? button("coast-claim", "Serahkan segel & terima imbalan") : ""}<p>${!offer && !this.s.completed ? "Catatan dan tujuan misi tersedia di Jurnal (J)." : ""}</p><h3>Pelelangan ikan</h3>${button("coast-sell", "Jual seluruh ikan")}${button("close", "Sampai jumpa")}</div>`,
     );
   }
   board(id) {
@@ -294,6 +332,12 @@ export class Coast {
       return false;
     if (!this.s.lighthouse) {
       g.ui.toast("Perbaiki mercusuar agar perahu boleh berlayar.");
+      return false;
+    }
+    if (!this.s.boatOwned && !this.s.rescueAccepted) {
+      g.ui.toast(
+        "Bicaralah dengan Bu Sari untuk meminta misi penyelamatan dan meminjam perahu.",
+      );
       return false;
     }
     g.frontier.cancelFishing();
@@ -331,7 +375,7 @@ export class Coast {
         if (!wasOwned && this.s.boatOwned) {
           g.state.addXp(80);
           g.ui.toast(
-            "Dua nelayan pulang! +150 koin. Perahu motor menjadi milikmu; selidiki kapal di Pulau Karang.",
+            "Dua nelayan pulang! +150 koin dan perahu motor. Kembali kepada Bu Sari untuk melapor.",
             "success",
           );
         } else
@@ -364,11 +408,30 @@ export class Coast {
   action(action, args = {}) {
     const g = this.g,
       d = g.state.data;
+    if (action === "coast-accept") {
+      if (
+        g.spirit.active ||
+        g.expeditions.active ||
+        this.boating ||
+        g.ui.panel !== "dialogue" ||
+        distance(d, CAPTAIN) > 5
+      )
+        return true;
+      if (acceptCoastRequest(this.s, args.id)) {
+        g.state.save();
+        g.ui.close();
+        g.ui.toast(
+          "Quest diterima dari Bu Sari. Catatan tersedia di Jurnal (J).",
+          "success",
+        );
+      }
+      return true;
+    }
     if (action === "coast-waypoint" || action === "coast-next") {
       if (g.spirit.active || g.expeditions.active) return true;
       let target = COAST;
       if (action === "coast-next") {
-        const st = coastStage(this.s);
+        const st = coastRequest(this.s) ? 0 : coastStage(this.s);
         target =
           st === 1
             ? COAST_PARTS.find((p) => !this.s.parts.includes(p.id)) || {
@@ -515,7 +578,8 @@ export class Coast {
       gem.rotation.y = t;
       gem.position.y = 1.1 + Math.sin(t * 2) * 0.12;
     }
-    this.relic.visible = this.s.boatOwned && !this.s.relic;
+    this.relic.visible =
+      this.s.boatOwned && this.s.wreckAccepted && !this.s.relic;
     this.relic.rotation.y = t;
     this.lightPivot.visible = this.s.lighthouse && g.state.isNight;
     this.lightPivot.rotation.y = t * 0.25;
@@ -540,15 +604,14 @@ export class Coast {
     this.hudTimer = 0;
     this.hud.classList.toggle(
       "hidden",
-      d.z < 285 || g.spirit.active || g.expeditions.active || !g.started,
+      !this.boating ||
+        !!g.ui.panel ||
+        g.spirit.active ||
+        g.expeditions.active ||
+        !g.started,
     );
-    if (d.z < 285) return;
-    const [title] = COAST_STAGES[coastStage(this.s)];
-    const target = this.boating
-      ? FISHERMEN.find(
-          (p) => !this.s.rescued.includes(p.id) && !this.aboard.includes(p.id),
-        ) || DOCKS[0]
-      : null;
-    this.hud.innerHTML = `<small>KARANG TIRTA · ${g.state.isNight ? "RONDA PESISIR" : d.time < 900 ? "PELELANGAN PAGI" : "SORE DI DERMAGA"}</small><strong>${title}</strong><span>${this.boating ? `${this.s.boatOwned ? "Perahu milikmu" : "Perahu pinjaman"} · Penumpang ${this.aboard.length}/2 · WASD / joystick · E sandar / tolong` : `Mercusuar ${this.s.lighthouse ? "menyala" : this.s.parts.length + "/3"} · Nelayan ${this.s.rescued.length}/2 · Buto Ijo ${this.s.butoDefeated ? "teratasi" : "muncul malam"}`}</span>${target ? `<span>Tujuan: ${target.name} (${target.x}, ${target.z}) · ${Math.round(distance(d, target))} m</span>` : ""}<nav>${this.boating ? button("interact", "Tolong / Sandar · E") + button("coast-return", "Kembali darurat") : button("coast-next", "Tandai tujuan quest")}</nav>`;
+    if (!this.boating) return;
+    const content = `<span>Perahu · Penumpang ${this.aboard.length}/2</span><nav>${button("interact", "Tolong / Sandar · E")}${button("coast-return", "Kembali ke dermaga")}</nav>`;
+    if (this.hud.innerHTML !== content) this.hud.innerHTML = content;
   }
 }

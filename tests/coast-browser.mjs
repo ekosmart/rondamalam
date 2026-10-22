@@ -65,6 +65,17 @@ try {
   await move(-6, 335);
   await interact();
   await check(
+    "talking to Bu Sari only offers the quest",
+    () => !__ronda.state.data.coast.started,
+  );
+  await page.locator('[data-action="close"]').last().click();
+  await check(
+    "declining preserves unaccepted quest",
+    () => !__ronda.state.data.coast.started,
+  );
+  await interact();
+  await page.locator('[data-action="coast-accept"]').click();
+  await check(
     "captain starts lighthouse quest",
     () => __ronda.state.data.coast.started,
   );
@@ -89,6 +100,15 @@ try {
     "three components repair the lighthouse",
     () => __ronda.state.data.coast.lighthouse,
   );
+  await move(84, 330);
+  await interact();
+  await check(
+    "rescue mission must be requested from NPC",
+    () => !__ronda.coast.boating && !__ronda.state.data.coast.rescueAccepted,
+  );
+  await move(-6, 335);
+  await interact();
+  await page.locator('[data-action="coast-accept"][data-id="rescue"]').click();
   await move(84, 330);
   await interact();
   await check("loan motorboat can be boarded", () => __ronda.coast.boating);
@@ -144,6 +164,14 @@ try {
       __ronda.state.data.coast.boatOwned &&
       __ronda.state.data.coast.rescued.length === 2,
   );
+  await check(
+    "wreck mission does not auto-start",
+    () => !__ronda.state.data.coast.wreckAccepted,
+  );
+  await move(-6, 335);
+  await interact();
+  await page.locator('[data-action="coast-accept"][data-id="wreck"]').click();
+  await move(84, 330);
   await interact();
   await page.evaluate(() => {
     const g = __ronda;
@@ -233,6 +261,19 @@ try {
   });
   await move(27, 358);
   await page.waitForTimeout(1200);
+  await check(
+    "coastal quest panel never covers walking view",
+    () =>
+      getComputedStyle(document.querySelector("#coast-hud")).display === "none",
+  );
+  await page.evaluate(() => __ronda.ui.open("journal"));
+  await check("coastal tasks live in journal", () =>
+    document
+      .querySelector("#panel-content")
+      .textContent.includes("Kapal Tanpa Awak"),
+  );
+  await page.screenshot({ path: "tmp/screenshots/regional-journal.png" });
+  await page.evaluate(() => __ronda.ui.close());
   await page.screenshot({ path: "tmp/screenshots/karang-tirta.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);

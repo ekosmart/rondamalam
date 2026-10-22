@@ -7,8 +7,8 @@
   position: absolute;
   top: 18px;
   left: 20px;
-  width: min(650px, calc(100vw - 40px));
-  padding: 16px 20px;
+  width: min(310px, calc(100vw - 40px));
+  padding: 10px 12px;
   background: #122d34e8;
   border: 1px solid #c0b37a80;
   border-radius: 10px;
@@ -63,7 +63,7 @@
 }
 @media (max-width: 700px) {
   #spirit-hud {
-    top: 65px;
+    top: 14px;
     left: 10px;
     width: calc(100vw - 20px);
     padding: 9px 12px;

@@ -31,6 +31,8 @@ test("coastal quest order and rewards cannot be repeated", () => {
   assert.equal(repairLighthouse(d), true);
   assert.equal(repairLighthouse(d), false);
   assert.equal(d.coins, start + 100);
+  assert.equal(deliverFishermen(d, ["darto"]), false);
+  d.coast.rescueAccepted = true;
   assert.equal(deliverFishermen(d, ["darto", "fake", "darto"]), true);
   assert.equal(d.coast.boatOwned, false);
   assert.equal(deliverFishermen(d, ["seno"]), true);

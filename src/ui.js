@@ -38,6 +38,8 @@ const paths = {
   water: "M12 2C9 7 4 12 5 16c2 8 15 7 14-1-1-4-4-9-7-13Z",
   coin: "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 6v12m3-10h-4a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4H9",
   arrow: "M4 12h16m-6-6 6 6-6 6",
+  up: "M12 20V4m-6 6 6-6 6 6",
+  down: "M12 4v16m-6-6 6 6 6-6",
   close: "m6 6 12 12M6 18 18 6",
   sound: "M11 3 5 8H2v8h3l6 5V3Zm4 4a7 7 0 0 1 0 10m3-13a11 11 0 0 1 0 16",
   settings: "M4 7h16M4 17h16M8 4v6m8 4v6",
@@ -96,7 +98,7 @@ export class UI {
         <div class="skills"><button data-action="special" class="skill-button" id="special-button"><kbd>Q</kbd>${icon("bolt", 23)}<span>Pusaka</span><i></i></button><button data-action="companion" class="skill-button" id="companion-button"><kbd>G</kbd>${icon("ghost", 23)}<span id="companion-name">Pendamping</span><i></i></button><span class="skills-note">KLIK <b>Target</b> · SPASI <b>Serang</b></span></div>
         <footer class="control-footer"><span><kbd>W A S D</kbd> Bergerak</span><span><kbd>SHIFT</kbd> Lari</span><span><kbd>DRAG</kbd> Putar kamera</span><span><kbd>SCROLL</kbd> Zoom</span><span><kbd>E</kbd> Interaksi</span><span class="save-state"><i></i> Tersimpan lokal</span></footer>
         <div class="mobile-pad"><div id="move-joystick" aria-label="Joystick gerak karakter"><span class="joystick-knob"></span><span class="joystick-label">GERAK</span></div><button data-action="interact" aria-label="Interaksi">E</button></div>
-        <section id="flight-controls" class="hidden" aria-label="Kontrol ketinggian tunggangan"><strong id="flight-height"></strong><button data-action="ascend" data-flight="1" aria-label="Naik ketinggian">↑ Naik <kbd>T</kbd></button><button data-action="descend" data-flight="-1" aria-label="Turun ketinggian">↓ Turun <kbd>C</kbd></button><small>Tekan atau tahan</small></section><div id="first-tip"><span>${icon("light", 17)} SELAMAT DATANG DI SUKARAME</span><p>Dekati Pak Wiryo di pos. Tekan <kbd>E</kbd> untuk berbicara, atau <kbd>B</kbd> untuk naik sepeda.</p><button data-action="dismiss-tip" aria-label="Tutup petunjuk">${icon("close", 15)}</button></div>
+        <section id="flight-controls" class="hidden" aria-label="Kontrol ketinggian tunggangan"><button data-action="ascend" data-flight="1" aria-label="Naik ketinggian" title="Naik ketinggian (T) — tekan atau tahan">${icon("up", 22)}</button><button data-action="descend" data-flight="-1" aria-label="Turun ketinggian" title="Turun ketinggian (C) — tekan atau tahan">${icon("down", 22)}</button></section><div id="first-tip"><span>${icon("light", 17)} SELAMAT DATANG DI SUKARAME</span><p>Dekati Pak Wiryo di pos. Tekan <kbd>E</kbd> untuk berbicara, atau <kbd>B</kbd> untuk naik sepeda.</p><button data-action="dismiss-tip" aria-label="Tutup petunjuk">${icon("close", 15)}</button></div>
       </div>
       <div id="modal-root"></div><div id="damage-flash"></div><div id="respawn-overlay" class="hidden"><span>FAJAR MASIH MENUNGGUMU</span><h2>Belum waktunya pulang.</h2><p>Warga membawamu kembali ke pos ronda.</p></div>`;
     this.root.addEventListener("click", (e) => {
@@ -524,7 +526,6 @@ export class UI {
       .querySelector("#flight-controls")
       .classList.toggle("hidden", !flight || !!g.sports.active || !!this.panel || !!g.coast?.boating);
     if (!flight || this.panel) g.flightInput = 0;
-    set("flight-height", `${Math.round(g.altitude)} m · target ${Math.round(g.cruiseAltitude)} m`);
     document
       .querySelector("#tech-controls")
       .classList.toggle(

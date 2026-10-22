@@ -45,7 +45,14 @@ try {
     g.action("interact");
   });
   await check(
-    "keeper starts the quest while Sembrani hovers low",
+    "keeper conversation does not auto-accept",
+    () => !__ronda.state.data.spirit.started,
+  );
+  await close();
+  await interact();
+  await page.locator('[data-action="spirit-accept"][data-id="sparks"]').click();
+  await check(
+    "keeper quest accepted while Sembrani hovers low",
     () => __ronda.state.data.spirit.started,
   );
   await close();
@@ -100,6 +107,11 @@ try {
   );
   await page.keyboard.press("KeyB");
   await interact();
+  await check(
+    "palace quest waits for explicit acceptance",
+    () => !__ronda.state.data.spirit.welcomed,
+  );
+  await page.locator('[data-action="spirit-accept"][data-id="relics"]').click();
   await close();
   await check(
     "juru keraton grants audience",
@@ -117,6 +129,13 @@ try {
     "all three relics are collected",
     () => __ronda.state.data.spirit.relics.length === 3,
   );
+  await check(
+    "gamelan mission does not auto-start",
+    () => !__ronda.state.data.spirit.melodyAccepted,
+  );
+  await pos(0, 27);
+  await interact();
+  await page.locator('[data-action="spirit-accept"][data-id="melody"]').click();
   await pos(18, -17);
   await interact();
   await page.locator('[data-action="spirit-note"][data-note="0"]').click();
@@ -130,6 +149,17 @@ try {
     await page
       .locator('[data-action="spirit-note"][data-note="' + n + '"]')
       .click();
+  await check(
+    "guardian waits for a quest from the guard",
+    () =>
+      !__ronda.spirit.boss.visible &&
+      !__ronda.state.data.spirit.guardianAccepted,
+  );
+  await pos(0, 27);
+  await interact();
+  await page
+    .locator('[data-action="spirit-accept"][data-id="guardian"]')
+    .click();
   await check(
     "correct melody opens boss encounter",
     () => __ronda.state.data.spirit.melodySolved && __ronda.spirit.boss.visible,
@@ -273,6 +303,16 @@ try {
   );
   await pos(0, -22);
   await page.waitForTimeout(250);
+  await check(
+    "palace HUD only shows controls, not quest sequence",
+    () =>
+      !document
+        .querySelector("#spirit-hud")
+        .textContent.includes("Penembus Sukma") &&
+      !document
+        .querySelector("#spirit-hud")
+        .textContent.includes("Keraton telah pulih"),
+  );
   await page.screenshot({ path: "tmp/screenshots/spirit-palace.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(200);

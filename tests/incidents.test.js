@@ -11,19 +11,23 @@ const storage = () => {
   const m = new Map();
   return { getItem: (k) => m.get(k), setItem: (k, v) => m.set(k, v) };
 };
-test("random nights stay deterministic across reload and include all three events plus a quiet night", () => {
+test("fixed rotation guarantees equal turns for four invasions and one quiet night", () => {
   for (const seed of [1, 73, 975, 13987])
-    for (let n = 1; n < 31; n += 4) {
-      const plans = [0, 1, 2, 3].map((i) => nightPlan(seed, n + i));
+    for (let n = 1; n < 31; n += 5) {
+      const plans = [0, 1, 2, 3, 4].map((i) => nightPlan(seed, n + i));
       assert.deepEqual(
         new Set(plans.map((p) => p.kind)),
-        new Set(["zombie", "alien", "dino", null]),
+        new Set(["zombie", "alien", "dino", "witch", null]),
       );
       for (const p of plans) {
         assert.deepEqual(p, nightPlan(seed, p.night));
-        assert.ok(p.start >= 1170 && p.start < 1290);
+        assert.equal(p.start, 1200);
+        assert.deepEqual(p, nightPlan(seed + 999, p.night));
       }
     }
+  assert.equal(nightPlan(1, 5).witchType, "frog");
+  assert.equal(nightPlan(1, 10).witchType, "stone");
+  assert.equal(nightPlan(1, 15).witchType, "frog");
   assert.ok(nightMinutes(100) > nightMinutes(1200));
 });
 test("four waves culminate in exactly one giant boss per event", () => {

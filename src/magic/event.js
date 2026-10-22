@@ -1,3 +1,5 @@
+import { SchoolInterior } from "./school-interior.js";
+import { nightMinutes } from "../incident-rules.js";
 import * as THREE from "three";
 import { asset, loadMagicAssets } from "./assets.js";
 import { createWitchRig } from "./rider-model.js";
@@ -87,7 +89,7 @@ export class MagicEvent {
   }
   journal() {
     const s = this.s;
-    return `<h3 class="section-label">MALAM KUTUKAN SAPU HITAM</h3><div class="quest-list">${[
+    return `<h3 class="section-label">MALAM KUTUKAN SAPU HITAM</h3><p>Rotasi 5 malam: tenang → zombie/titan → alien → dinosaurus → penyihir. Invasi mulai pukul 20.00. Kedua penyihir bergantian.</p><div class="quest-list">${[
       [
         "Kutukan di Bawah Sapu",
         s.accepted,
@@ -123,7 +125,7 @@ export class MagicEvent {
     frontierPanel(
       this.g,
       "Bu Laras · Penjaga Mantra",
-      `<p class="dialogue-line">“Dua penyihir mencuri nama warga. Yang hijau mengubah tubuh menjadi kodok; Hollow Rider mengunci jiwa di batu. Usir salah satunya dan bawa kabarnya kepadaku. Ramuan menjaga tubuhmu dan bisa dipakai untuk menolong korban.”</p>${!s.accepted ? btn("magic-accept", "Saya akan membantu") : !s.ticket ? `${s.defeated.length ? btn("magic-ticket", "Laporkan serangan · Terima tiket & 100 koin") : "<p>Penyerang muncul pada malam hari secara acak. Lanjutkan ronda; kabar serangan akan terdengar.</p>"}` : "<p>Tiketmu berlaku seterusnya. Pak Jatmiko menjaga loket Stasiun Tengah Malam di barat daya. Portal bata hanya terbuka malam hari ketika kereta tiba dan troli didorong mendekatinya.</p>"}${s.accepted && s.potions === 0 ? btn("magic-supply", "Minta ramuan cadangan") : ""}${btn("close", "Sampai jumpa")}`,
+      `<p class="dialogue-line">“Dua penyihir mencuri nama warga. Yang hijau mengubah tubuh menjadi kodok; Hollow Rider mengunci jiwa di batu. Usir salah satunya dan bawa kabarnya kepadaku. Ramuan menjaga tubuhmu dan bisa dipakai untuk menolong korban.”</p>${!s.accepted ? btn("magic-accept", "Saya akan membantu") : !s.ticket ? `${s.defeated.length ? btn("magic-ticket", "Laporkan serangan · Terima tiket & 100 koin") : "<p>Penyihir mendapat giliran malam 5, 10, 15, dan seterusnya pukul 20.00. Beradalah di sekitar desa saat gilirannya.</p>"}` : "<p>Tiketmu berlaku seterusnya. Pak Jatmiko menjaga loket Stasiun Tengah Malam di barat daya. Portal bata hanya terbuka malam hari ketika kereta tiba dan troli didorong mendekatinya.</p>"}${s.accepted && s.potions === 0 ? btn("magic-supply", "Minta ramuan cadangan") : ""}${btn("close", "Sampai jumpa")}`,
     );
   }
   stationDialogue() {
@@ -145,7 +147,7 @@ export class MagicEvent {
     frontierPanel(
       this.g,
       "Prof. Arun · Penjaga Halaman Akademi",
-      `<p>“Serangan itu bersumber dari tiga segel di halaman kami. Kau boleh meminjam tongkat untuk memutusnya. Dekati tiap orang-orangan hingga 12 meter, urut Lentera → Bulan → Ombak, lalu Spasi atau tombol mantra. Setelah tiga segel padam, tongkat dan sapu ini menjadi milikmu.”</p><p>Segel padam ${this.s.seals.length}/3. Bagian dalam sekolah masih disegel.</p>${!this.s.trialAccepted ? btn("magic-trial", "Saya akan membantu · Pinjam tongkat") : !this.s.completed && this.s.seals.length === 3 ? btn("magic-reward", "Laporkan · Terima Tongkat Sihir & Sapu Terbang") : this.s.completed ? "<p>Terima kasih. Kutukan warga telah dipatahkan. Peron tetap dapat kau kunjungi.</p>" : "<p>Lanjutkan latihan di halaman.</p>"}${btn("close", "Sampai jumpa")}`,
+      `<p>“Serangan itu bersumber dari tiga segel di halaman kami. Kau boleh meminjam tongkat untuk memutusnya. Dekati tiap orang-orangan hingga 12 meter, urut Lentera → Bulan → Ombak, lalu Spasi atau tombol mantra. Setelah tiga segel padam, tongkat dan sapu ini menjadi milikmu.”</p><p>Segel padam ${this.s.seals.length}/3. Pintu Sekolah Kala Wengi di ujung jalan halaman kini terbuka. Dekati pintu lalu tekan E untuk menjelajah.</p>${!this.s.trialAccepted ? btn("magic-trial", "Saya akan membantu · Pinjam tongkat") : !this.s.completed && this.s.seals.length === 3 ? btn("magic-reward", "Laporkan · Terima Tongkat Sihir & Sapu Terbang") : this.s.completed ? "<p>Terima kasih. Kutukan warga telah dipatahkan. Peron tetap dapat kau kunjungi.</p>" : "<p>Lanjutkan latihan di halaman.</p>"}${btn("close", "Sampai jumpa")}`,
     );
   }
   interactions() {
@@ -334,6 +336,7 @@ export class MagicEvent {
       this.exit();
       return action !== "menu";
     }
+    if (this.insideSchool && this.school.action(action)) return true;
     if (action === "magic-trial" || action === "magic-reward") {
       if (
         g.ui.panel !== "dialogue" ||
@@ -373,9 +376,13 @@ export class MagicEvent {
       return false;
     if (g.ui.panel) return true;
     if (action === "interact" || action === "magic-interact") {
-      if (distance(this.position, { x: 4, z: 22 }) < 4) this.professor();
+      if (distance(this.position, { x: 0, z: -16 }) < 4) this.enterSchool();
+      else if (distance(this.position, { x: 4, z: 22 }) < 4) this.professor();
       else if (distance(this.position, { x: -23, z: 23 }) < 4) this.exit();
-      else g.ui.toast("Dekati Prof. Arun atau gerbang untuk berinteraksi.");
+      else
+        g.ui.toast(
+          "Dekati Prof. Arun, pintu sekolah di ujung jalan, atau gerbang untuk berinteraksi.",
+        );
     }
     if (action === "attack" || action === "special" || action === "magic-cast")
       this.cast();
@@ -550,15 +557,15 @@ export class MagicEvent {
     if (
       !this.enemy &&
       nightTime(d) &&
-      d.night >= 2 &&
+      g.incidents.data.plan?.kind === "witch" &&
+      nightMinutes(d.time) >= g.incidents.data.plan.start - 1080 &&
       s.checkedNight !== d.night &&
       Math.hypot(d.x, d.z) < 140 &&
       !g.sports.active &&
       !["warning", "active"].includes(g.incidents.event?.phase)
     ) {
       s.checkedNight = d.night;
-      if (Math.random() < 0.55)
-        this.startRaid(Math.random() < 0.5 ? "frog" : "stone");
+      this.startRaid(g.incidents.data.plan.witchType);
       g.state.save();
     }
     if (this.enemy) {
@@ -732,6 +739,7 @@ export class MagicEvent {
   exit() {
     if (!this.active) return;
     const g = this.g;
+    if (this.insideSchool) this.school.leave();
     this.active = false;
     g.cameraYaw = this.villageCamera.yaw;
     g.cameraPitch = this.villageCamera.pitch;
@@ -754,7 +762,23 @@ export class MagicEvent {
     g.state.save();
     this.world.trolley.position.set(TROLLEY.x, 0, TROLLEY.z);
   }
+  enterSchool() {
+    if (
+      !this.active ||
+      this.insideSchool ||
+      distance(this.position, { x: 0, z: -16 }) >= 4
+    )
+      return;
+    try {
+      this.school ??= new SchoolInterior(this);
+      this.school.enter();
+    } catch (e) {
+      console.error("School interior:", e);
+      this.g.ui.toast("Interior gagal dimuat. Silakan coba kembali.");
+    }
+  }
   cast() {
+    if (this.insideSchool) return;
     if (!this.s.trialAccepted) {
       this.g.ui.toast("Mintalah tugas dan tongkat pinjaman kepada Prof. Arun.");
       return;
@@ -801,6 +825,10 @@ export class MagicEvent {
     } else this.g.ui.toast(`Segel padam ${this.s.seals.length}/3.`);
   }
   frame(dt, t) {
+    if (this.insideSchool) {
+      this.school.frame(dt, t);
+      return;
+    }
     const g = this.g,
       a = this.academy;
     g.audio.ghostVoices.pause(true);

@@ -114,6 +114,12 @@ export class Incidents {
         "success",
       );
     }
+    // Keep an existing night's encounter/result intact when upgrading old saves.
+    if (s.plan?.night === d.night && s.plan.version !== 2) {
+      s.plan = s.event
+        ? { ...s.plan, version: 2, kind: s.event.type }
+        : nightPlan(s.seed, d.night);
+    }
     if (s.plan?.night !== d.night) {
       if (this.event && ["active", "warning"].includes(this.event.phase))
         this.dawn();
@@ -1024,6 +1030,9 @@ export class Incidents {
       s.labBuilt &&
       g.state.isNight &&
       s.plan.kind &&
+      s.plan.kind !== "witch" &&
+      !g.magic?.enemy &&
+      !g.state.data.magic?.raid &&
       !this.event &&
       nightMinutes(g.state.data.time) >= s.plan.start - 1080
     )

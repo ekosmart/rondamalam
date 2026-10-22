@@ -20,25 +20,16 @@ export function freshIncidents(seed = Math.floor(Math.random() * 0x7fffffff)) {
     },
   };
 }
-function random(seed) {
-  let n = seed | 0;
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  n = Math.imul(n ^ (n >>> 16), 0x45d9f3b);
-  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
-// Three different incidents and one quiet night per shuffled four-night block.
+// One guaranteed slot per threat in every five nights; night one is a rest night.
+export const INVASION_ROTATION = [null, "zombie", "alien", "dino", "witch"];
 export function nightPlan(seed, night) {
-  const n = Math.max(1, Math.floor(night)),
-    block = Math.floor((n - 1) / 4);
-  const order = ["zombie", "alien", "dino", null];
-  for (let i = 3; i > 0; i--) {
-    const j = Math.floor(random(seed + block * 7919 + i * 3571) * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
+  const n = Math.max(1, Math.floor(night));
   return {
+    version: 2,
     night: n,
-    kind: order[(n - 1) % 4],
-    start: 1170 + Math.floor(random(seed + n * 1543) * 120),
+    kind: INVASION_ROTATION[(n - 1) % INVASION_ROTATION.length],
+    start: 1200,
+    witchType: Math.floor((n - 1) / 5) % 2 === 0 ? "frog" : "stone",
   };
 }
 export const nightMinutes = (time) => (time - 1080 + 1440) % 1440;

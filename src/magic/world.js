@@ -112,7 +112,7 @@ export function buildAcademy() {
   teacher.position.set(4, 0, 22);
   scene.add(teacher);
   sign(scene, "PROF. ARUN · AKADEMI SIHIR", 8, 0.7).position.set(4, 3.5, 22);
-  sign(scene, "HALAMAN AKADEMI · INTERIOR BELUM TERBUKA", 16, 0.8).position.set(
+  sign(scene, "SEKOLAH KALA WENGI · MASUK DENGAN E", 16, 0.8).position.set(
     0,
     4,
     -19,

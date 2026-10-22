@@ -7,6 +7,7 @@ export const BOOTH = { x: -197, z: 259 },
 export const NOTES = ["Lentera", "Ombak", "Bulan"];
 export const ORDER = [0, 2, 1];
 export const freshMagic = () => ({
+  scheduleVersion: 2,
   accepted: false,
   defeated: [],
   rescued: 0,
@@ -70,6 +71,7 @@ export function restoreMagic(raw) {
       type: raw.raid.type,
       night: Math.max(1, Number(raw.raid.night) || 1),
     };
+  if (raw.scheduleVersion !== 2 && !s.raid) s.checkedNight = 0;
   if (s.completed) {
     s.seals = [0, 1, 2];
     s.trialAccepted = true;

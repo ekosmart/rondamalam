@@ -39,6 +39,36 @@
 .inside-academy .mobile-pad {
   z-index: 14;
 }
+.school-room {
+  flex: 0 0 100%;
+  display: grid;
+  gap: 3px;
+  color: #eee2c7;
+  text-shadow: 0 2px 4px #000;
+  padding-bottom: 4px;
+}
+.school-room span {
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.school-room strong {
+  font-size: 18px;
+}
+.inside-school #magic-controls {
+  max-width: 310px;
+}
+.inside-school #magic-controls button {
+  font-size: 12px;
+}
+@media (max-height: 450px) {
+  .inside-school #magic-controls {
+    max-width: calc(100vw - 32px);
+  }
+  .inside-school .school-room {
+    flex-basis: auto;
+    margin-right: 8px;
+  }
+}
 @media (max-width: 700px) {
   #magic-controls {
     right: 16px;

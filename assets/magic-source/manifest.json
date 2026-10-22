@@ -1,6 +1,6 @@
 {
-  "count": 19,
-  "provenance": "User supplied models and visual logic, provided 2026-10-22. Original files retained; no third-party runtime service required.",
+  "count": 21,
+  "provenance": "User supplied models and visual logic, provided 2026-10-22 and school interior 2026-10-23. Original files retained; no third-party runtime service required.",
   "assets": [
     {
       "source": "candle.glb",
@@ -115,6 +115,18 @@
       "original": "assets/magic-source/Stasiun Tengah Malam – Haunted Station Kit.html",
       "runtime": "src/magic/station-model.js",
       "sha256": "2c10c08530288bc4d56a3b57167138f8d8a53258f69784288b6a775abe0d361c"
+    },
+    {
+      "source": "school_interior.js",
+      "runtime": "src/magic/school-model.js",
+      "use": "Interior Sekolah Kala Wengi: ruangan, animasi, collider dan interaksi",
+      "sha256": "047ec49e8b01bc2833dec182bd19244d6a35ebbfebb60bf0c9dbb1eb98003818"
+    },
+    {
+      "source": "Sekolah Sihir Kala Wengi.html",
+      "runtime": "src/magic/school-interior.js",
+      "use": "Referensi visual dan kontrol interior; sumber JS dipakai untuk runtime",
+      "sha256": "c0fb65c5b3940084a02a0a8e3f3e4a3f6e93251ba30735bafc1f4b3ab89b260d"
     }
   ]
 }

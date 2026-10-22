@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stasiun Tengah Malam – Modular Haunted Station Kit</title>
+<style>
+:root{color-scheme:dark;--bg:#050807;--fg:#cfe8d8;--ac:#6dff9c;--pn:rgba(8,14,11,.74);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;overflow:hidden}
+canvas{display:block}
+#ui{position:fixed;left:12px;top:calc(12px + env(safe-area-inset-top,0px));background:var(--pn);border:1px solid #1f3a2c;padding:10px 12px;max-width:calc(100vw - 24px)}
+#ui b{color:var(--ac);letter-spacing:.08em}#ui span{display:block;opacity:.7;margin-bottom:8px}
+#b{display:flex;flex-wrap:wrap;gap:6px}
+button{background:#0b1812;color:var(--fg);border:1px solid #2a5a40;padding:5px 9px;font:inherit;cursor:pointer}
+button.on{background:#14402c;border-color:var(--ac);color:var(--ac)}
+small{display:block;margin-top:8px;opacity:.6}
+</style></head><body>
+<div id="ui"><b>STASIUN TENGAH MALAM</b><span>Modular haunted station kit · low-poly · drag to orbit, scroll to zoom</span><div id="b"></div><small id="st"></small></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const V=THREE.Vector3,PI=Math.PI;
+const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;document.body.appendChild(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color(0x0a1a13);S.fog=new THREE.FogExp2(0x0e2a1f,.042);
+const C=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,120);C.position.set(10,4.6,14.5);
+const OC=new THREE.OrbitControls(C,R.domElement);OC.target.set(0,2.5,-1);OC.maxPolarAngle=PI*.495;OC.enableDamping=true;OC.update();
+
+// ---------- textures & materials ----------
+let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+function ctex(n,fn){const c=document.createElement('canvas');c.width=c.height=n;fn(c.getContext('2d'),n);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.encoding=THREE.sRGBEncoding;t.magFilter=THREE.NearestFilter;return t}
+const tcl=(t,x,y)=>{const c=t.clone();c.needsUpdate=true;c.repeat.set(x,y);return c};
+const brickT=ctex(256,(g,n)=>{g.fillStyle='#1c1511';g.fillRect(0,0,n,n);
+ for(let r=0;r<8;r++)for(let i=-1;i<4;i++){const v=rnd();g.fillStyle=`hsl(${10+v*12},${30+rnd()*20}%,${18+v*14}%)`;g.fillRect(i*64+(r%2?32:0)+2,r*32+2,60,28)}
+ for(let k=0;k<70;k++){g.fillStyle=`rgba(${20+rnd()*20|0},${70+rnd()*60|0},50,${.1+rnd()*.22})`;g.beginPath();g.arc(rnd()*n,rnd()*n,3+rnd()*16,0,7);g.fill()}
+ for(let k=0;k<14;k++){g.fillStyle='rgba(8,6,5,.65)';g.fillRect(rnd()*n,rnd()*n,6+rnd()*22,4+rnd()*14)}});
+const woodT=ctex(128,(g,n)=>{g.fillStyle='#3a2a1d';g.fillRect(0,0,n,n);for(let i=0;i<40;i++){g.fillStyle=`rgba(${rnd()<.5?'15,10,6':'90,85,70'},${.2+rnd()*.3})`;g.fillRect(rnd()*n,0,1+rnd()*2,n)}});
+const stoneT=ctex(128,(g,n)=>{g.fillStyle='#3a403b';g.fillRect(0,0,n,n);for(let i=0;i<260;i++){g.fillStyle=`rgba(${rnd()<.5?'10,20,14':'110,130,115'},${.15+rnd()*.25})`;g.fillRect(rnd()*n,rnd()*n,2+rnd()*8,2+rnd()*8)}});
+const mt=o=>new THREE.MeshStandardMaterial(Object.assign({flatShading:true,roughness:1,metalness:0},o));
+const brickW=mt({map:tcl(brickT,.5,.5)}),brickB=mt({map:tcl(brickT,2,3.2)}),wood=mt({map:woodT}),stone=mt({map:tcl(stoneT,2,2)}),
+ iron=mt({color:0x2b2420,metalness:.4}),rust=mt({color:0x5a3220,metalness:.4}),roofM=mt({color:0x3a1e18}),ballast=mt({color:0x1c211d}),
+ brass=mt({color:0x7a6a2a,metalness:.6}),darkM=new THREE.MeshBasicMaterial({color:0x020504}),
+ glow=new THREE.MeshBasicMaterial({color:0x14503a}),handM=new THREE.MeshBasicMaterial({color:0x9dffc0}),tickM=new THREE.MeshBasicMaterial({color:0x4f6a58});
+const mistT=ctex(64,(g,n)=>{const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,n,n)});
+mistT.magFilter=THREE.LinearFilter;
+
+// ---------- helpers ----------
+const mods=[],TYPES={wall:[0,-2.5],roof:[4,0],plat:[-1.5,0],track:[-1,3],col:[0,2.5],arch:[1.5,2.5],bench:[1.5,1.5],prop:[2,1.5],tower:[0,-2.5],lamp:[1,2]};
+function reg(g,t){S.add(g);mods.push({g,base:g.position.clone(),t});return g}
+function box(p,w,h,d,m,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x||0,y||0,z||0);p.add(o);return o}
+function poly(pts,m,depth,holes){const s=new THREE.Shape();pts.forEach((q,i)=>i?s.lineTo(q[0],q[1]):s.moveTo(q[0],q[1]));
+ if(holes){const h=new THREE.Path();holes.forEach((q,i)=>i?h.lineTo(q[0],q[1]):h.moveTo(q[0],q[1]));s.holes.push(h)}
+ return new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:false}),m)}
+
+// ---------- modules ----------
+// Wall module 4x4 with Gothic lancet window (variant: ragged, collapsed top)
+function wall(x,rag){const g=new THREE.Group();
+ const top=rag?[[2,3.6],[1.2,3.9],[.6,3.5],[-.4,3.9],[-1,3.6],[-2,3.8]]:[[2,4],[-2,4]];
+ const win=[[-.6,1.2],[.6,1.2],[.6,2.5],[.3,2.95],[0,3.2],[-.3,2.95],[-.6,2.5]];
+ const w=poly([[-2,0],[2,0],...top],brickW,.4,win);w.position.z=-.2;g.add(w);
+ const gl=new THREE.Mesh(new THREE.PlaneGeometry(1.2,2),glow);gl.position.set(0,2.2,-.12);g.add(gl);
+ box(g,.06,2,.08,iron,0,2.2,.05);box(g,1.2,.06,.08,iron,0,2,.05);
+ box(g,4.1,.35,.55,stone,0,.175,.05);
+ g.position.set(x,0,-3);return reg(g,'wall')}
+[-8,-4,4,8].forEach(x=>wall(x,x===8));
+// rubble at the collapsed wall
+{const r=new THREE.Group();[[.5,.3,.4,-.3,0],[.35,.25,.3,.4,.5],[.6,.2,.4,.1,1]].forEach(a=>{const b=box(r,a[0],a[1],a[2],brickB,a[3],a[1]/2,a[4]);b.rotation.y=a[3]*2});r.position.set(8.2,0,-2.3);reg(r,'prop')}
+
+// Clock-tower module
+function face(r){const g=new THREE.Group();
+ const d=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.06,12),mt({color:0x1d241f}));d.rotation.x=PI/2;g.add(d);
+ g.add(new THREE.Mesh(new THREE.TorusGeometry(r,r*.07,4,12),iron));
+ for(let i=0;i<12;i++){const a=i*PI/6,t=box(g,r*.07,r*(i%3?.1:.2),.03,tickM,Math.sin(a)*r*.82,Math.cos(a)*r*.82,.04);t.rotation.z=-a}
+ const h=new THREE.Group();box(h,r*.06,r*.85,.03,handM,0,r*.42,.07);box(h,r*.1,r*.55,.03,handM,0,r*.27,.05);box(h,r*.14,r*.14,.04,handM,0,0,.06);g.add(h);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:mistT,color:0x5dff9a,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:.5}));sp.scale.set(r*4,r*4,1);sp.position.z=.12;g.add(sp);
+ g.userData={h,sp};clocks.push(g);return g}
+const clocks=[];
+{const t=new THREE.Group();box(t,4,8,3.2,brickB,0,4,-2.4);box(t,4.5,.4,3.7,stone,0,8.2,-2.4);box(t,4.2,.3,3.4,stone,0,.15,-2.4);
+ const roof=new THREE.Mesh(new THREE.ConeGeometry(3.2,3.4,4),roofM);roof.rotation.y=PI/4;roof.position.set(0,10.1,-2.4);t.add(roof);
+ const sp=new THREE.Mesh(new THREE.ConeGeometry(.14,1.6,4),iron);sp.position.set(0,12.6,-2.4);t.add(sp);
+ const door=new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape([[-.9,0],[.9,0],[.9,2],[.45,2.65],[0,2.95],[-.45,2.65],[-.9,2]].map(p=>new V(p[0],p[1],0)).map(v=>new THREE.Vector2(v.x,v.y)))),darkM);door.position.set(0,.3,-.78);t.add(door);
+ const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.fillStyle='#1a1a14';g.fillRect(0,0,256,64);g.strokeStyle='#4a5a46';g.lineWidth=3;g.strokeRect(3,3,250,58);
+ g.fillStyle='#9fb89a';g.font='bold 21px monospace';g.textAlign='center';g.fillText('STASIUN',128,28);g.fillText('TENGAH MALAM',128,52);
+ for(let i=0;i<30;i++){g.fillStyle='rgba(10,10,8,.7)';g.fillRect(rnd()*256,rnd()*64,2+rnd()*14,1+rnd()*3)}
+ const st=new THREE.CanvasTexture(c);st.encoding=THREE.sRGBEncoding;const sg=new THREE.Mesh(new THREE.PlaneGeometry(2.6,.65),new THREE.MeshBasicMaterial({map:st}));sg.position.set(0,3.9,-.77);sg.rotation.z=.05;t.add(sg);
+ const f=face(1.25);f.position.set(0,6,-.78);t.add(f);reg(t,'tower')}
+
+// Roof modules (asymmetric Gothic-colonial pitch)
+function roofGeo(L){const s=new THREE.Shape();[[-3.4,0],[-.2,1.9],[3.1,0],[3.1,-.15],[-3.4,-.15]].forEach((q,i)=>i?s.lineTo(q[0],q[1]):s.moveTo(q[0],q[1]));
+ const g=new THREE.ExtrudeGeometry(s,{depth:L,bevelEnabled:false});g.rotateY(-PI/2);g.translate(L,0,0);return g}
+[[-10,8],[2,5.2],[8.8,1.2]].forEach(a=>{const m=new THREE.Mesh(roofGeo(a[1]),roofM);m.position.set(a[0],4,0);reg(m,'roof')});
+{const sl=new THREE.Group();box(sl,2.4,.14,1.6,roofM,0,0,0);sl.position.set(7.9,.45,1.4);sl.rotation.set(.1,.5,.3);reg(sl,'prop')}
+
+// Platform tiles (one sunken & cracked)
+for(let i=0;i<5;i++){const x=-8.8+i*4.4,g=new THREE.Group(),bad=i===2;
+ box(g,4.4,.6,6,stone,0,bad?-.4:-.3,0);box(g,4.4,.02,.12,mt({color:0x6b6a2a}),0,bad?-.09:.01,2.85);
+ if(bad){g.rotation.z=.04}g.position.x=x;reg(g,'plat')}
+
+// Rail modules (one with a snapped, bent rail and missing sleepers)
+for(let i=0;i<6;i++){const g=new THREE.Group(),br=i===3;g.position.set(-10+i*4,-.6,5.4);
+ box(g,4,.2,2.8,ballast,0,.1,0);
+ [-.7,.7].forEach((z,k)=>{const cut=br&&k===1;box(g,cut?2.4:4,.16,.12,rust,cut?-.8:0,.38,z);if(cut){const b=box(g,1.1,.16,.12,rust,1,.55,z);b.rotation.z=.5}});
+ for(let s=0;s<4;s++){if(br&&s===2)continue;box(g,.22,.1,2.4,wood,-1.5+s,.25,0)}
+ reg(g,'track')}
+
+// Gothic arcade: iron columns + pointed-arch spandrels
+[-9.5,-6,-2.5,2.5,6,9.5].forEach(x=>{const g=new THREE.Group();
+ const c=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,4.2,6),iron);c.position.y=2.1;g.add(c);box(g,.5,.25,.5,stone,0,.12,0);box(g,.45,.2,.45,iron,0,4.1,0);
+ g.position.set(x,0,2.4);reg(g,'col')});
+[[-7.75,0],[-4.25,0],[4.25,0],[7.75,1]].forEach(a=>{const hw=1.75,m=poly([[-hw,0],[-hw+.2,0],[-hw+.2,.35],[-hw*.5,.8],[0,1],[hw*.5,.8],[hw-.2,.35],[hw-.2,0],[hw,0],[hw,1.1],[-hw,1.1]],iron,.12);
+ m.position.set(a[0],3.1,2.35);if(a[1]){m.rotation.z=.18;m.position.y=2.6;m.position.x+=.2}reg(m,'arch')});
+
+// Benches (second one broken)
+function bench(x,z,bad){const g=new THREE.Group();
+ for(let i=0;i<3;i++){if(bad&&i===1)continue;box(g,2,.05,.16,wood,0,.5,-.2+i*.2)}
+ for(let i=0;i<2;i++){const p=box(g,2,.05,.16,wood,0,.8+i*.18,-.35);if(bad&&i===1){p.rotation.x=.9;p.position.set(.3,.55,-.2)}}
+ [-.85,.85].forEach(l=>box(g,.06,.5,.5,iron,l,.25,0));
+ if(bad){g.rotation.z=.2;g.position.y=-.08}g.position.x=x;g.position.z=z;return reg(g,'bench')}
+bench(-6.2,-2.2,false);bench(5.8,-2.2,true);bench(9.2,-1.6,false).rotation.y=.4;
+
+// Grandfather clock hero prop (hands frozen at midnight)
+const pend=new THREE.Group();
+{const g=new THREE.Group();box(g,1.2,.5,.8,wood,0,.25,0);box(g,.8,1.6,.55,wood,0,1.3,0);
+ const gl=new THREE.Mesh(new THREE.PlaneGeometry(.45,1.05),glow);gl.position.set(0,1.3,.278);g.add(gl);
+ pend.position.set(0,1.95,.29);box(pend,.03,.9,.02,brass,0,-.45,0);const bob=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.04,8),brass);bob.rotation.x=PI/2;bob.position.y=-.95;pend.add(bob);g.add(pend);
+ box(g,1,1,.65,wood,0,2.6,0);const cap=new THREE.Mesh(new THREE.ConeGeometry(.8,.75,4),wood);cap.rotation.y=PI/4;cap.position.y=3.48;g.add(cap);
+ const f=face(.38);f.position.set(0,2.6,.33);g.add(f);
+ const L=new THREE.PointLight(0x5dff9a,2.2,9,2);L.position.set(0,2.6,1.2);g.add(L);g.userData.L=L;window.gcL=L;
+ g.position.set(-2.8,0,-2.25);reg(g,'prop')}
+
+// Hanging lanterns (green light, one swings)
+const lamps=[];
+[[-4.25,1],[4.25,1],[-8,0]].forEach(a=>{const g=new THREE.Group();box(g,.02,1.1,.02,iron,0,-.55,0);
+ const lb=box(g,.3,.4,.3,new THREE.MeshBasicMaterial({color:0x7dffb0}),0,-1.3,0);box(g,.38,.08,.38,iron,0,-1.1,0);
+ if(a[1]){const L=new THREE.PointLight(0x5dff9a,2,10,2);L.position.y=-1.3;g.add(L);g.userData.L=L}
+ g.position.set(a[0],4.2,1.7);lamps.push(g);reg(g,'lamp')});
+
+// Ground
+const gr=new THREE.Mesh(new THREE.PlaneGeometry(120,120),mt({color:0x0a120d}));gr.rotation.x=-PI/2;gr.position.y=-.62;S.add(gr);
+
+// ---------- lighting & fake volumetrics ----------
+S.add(new THREE.HemisphereLight(0x6fb59a,0x0a0f0c,.4));
+const moon=new THREE.DirectionalLight(0x7fa8c8,.35);moon.position.set(-8,14,10);S.add(moon);
+[-8,-4,4,8].forEach(x=>{const a=new V(x,2.2,-2.85),b=new V(x,.03,-.2),d=b.clone().sub(a);
+ const m=new THREE.Mesh(new THREE.CylinderGeometry(.15,1.1,d.length(),8,1,true),new THREE.MeshBasicMaterial({color:0x5dff9a,transparent:true,opacity:.07,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+ m.position.copy(a.clone().add(b).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new V(0,-1,0),d.normalize());m.userData.fx=1;S.add(m)});
+const mist=[];for(let i=0;i<18;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mistT,color:0x7fe0b0,transparent:true,opacity:.1+rnd()*.1,depthWrite:false}));
+ const k=4+rnd()*3;s.scale.set(k*1.6,k*.5,1);s.position.set(-12+rnd()*24,.2+rnd()*1.2,-1+rnd()*8);s.userData={sp:.1+rnd()*.25};mist.push(s);S.add(s)}
+
+// ---------- UI ----------
+let ex=false,auto=false;const bar=document.getElementById('b');
+function btn(t,fn,on){const b=document.createElement('button');b.textContent=t;if(on)b.className='on';b.onclick=()=>{b.classList.toggle('on');fn(b.classList.contains('on'))};bar.appendChild(b)}
+btn('Fog',v=>S.fog.density=v?.042:0,true);
+btn('Wireframe',v=>S.traverse(o=>{if(o.isMesh&&!o.userData.fx)o.material.wireframe=v}));
+btn('Explode modules',v=>ex=v);
+btn('Auto-orbit',v=>auto=v);
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
+
+// ---------- loop ----------
+const clk=new THREE.Clock();let fr=0;
+(function loop(){requestAnimationFrame(loop);const t=clk.getElapsedTime();
+ mods.forEach(m=>{const T=TYPES[m.t],tg=ex?m.base.clone().add(new V(m.base.x*.18,T[0],T[1])):m.base;m.g.position.lerp(tg,.08)});
+ clocks.forEach((c,i)=>{c.userData.h.rotation.z=Math.sin(t*9+i)*.004*(Math.random()>.97?12:1);c.userData.sp.material.opacity=.4+.15*Math.sin(t*2.2+i)});
+ pend.rotation.z=Math.sin(t*1.6)*.3;
+ gcL.intensity=1.8+.5*Math.sin(t*2.2)+(Math.random()>.96?-1:0);
+ lamps.forEach((l,i)=>{l.rotation.z=Math.sin(t*.8+i*2)*.06;if(l.userData.L)l.userData.L.intensity=Math.random()>.93?.6:1.8+.3*Math.sin(t*3+i)});
+ mist.forEach(s=>{s.position.x+=s.userData.sp*.01;if(s.position.x>13)s.position.x=-13});
+ OC.autoRotate=auto;OC.autoRotateSpeed=.8;OC.update();R.render(S,C);
+ if(++fr%30===0)document.getElementById('st').textContent=`${R.info.render.triangles} tris · ${R.info.render.calls} draw calls · ${mods.length} modules`})();
+</script></body></html>

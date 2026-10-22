@@ -19,7 +19,8 @@
     "test:frontier": "node tests/frontier-browser.mjs",
     "test:weather": "node tests/weather-fishing-browser.mjs",
     "test:coast": "node tests/coast-browser.mjs",
-    "test:coast-layout": "node tests/coast-layout-browser.mjs"
+    "test:coast-layout": "node tests/coast-layout-browser.mjs",
+    "test:magic": "node tests/magic-browser.mjs && node tests/magic-mobile-browser.mjs"
   },
   "engines": {
     "node": "22.x"

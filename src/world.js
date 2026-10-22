@@ -1,3 +1,4 @@
+import { stationClearing } from "./magic/rules.js";
 import { WorldDamage } from "./world-damage.js";
 import { buildCoastWorld } from "./coast-world.js";
 import { WORLD_BOUNDS, coastLand } from "./coast-rules.js";
@@ -288,7 +289,7 @@ export class World {
     pool.rotation.x = -Math.PI / 2;
   }
   tree(x, z, size = 1, palm = false) {
-    if (frontierClearing(x, z)) return;
+    if (frontierClearing(x, z) || stationClearing(x, z)) return;
     if (Math.abs(x + 126) < 46 && Math.abs(z - 182) < 45) return;
     if (
       (Math.abs(x - 235) < 31 && Math.abs(z + 232) < 33) ||
@@ -869,6 +870,7 @@ export class World {
         x = range(-extent, extent),
         z = range(-extent, extent);
       if (
+        stationClearing(x, z) ||
         Math.abs(x - 155) < 15 ||
         this.roads.some(
           (r) =>

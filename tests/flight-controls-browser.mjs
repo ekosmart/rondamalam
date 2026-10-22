@@ -13,7 +13,7 @@ try {
   );
   await page.waitForFunction(() => window.__ronda);
   await page.locator('[data-action="start"]').click();
-  for (const mount of ["sembrani", "naga", "ufo", "mecha"]) {
+  for (const mount of ["sembrani", "naga", "ufo", "mecha", "sapu"]) {
     await page.evaluate((mount) => {
       const g = __ronda;
       Object.assign(g.state.data, {

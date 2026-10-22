@@ -336,7 +336,7 @@ export class VillageLife {
     this.syncRaids();
     const day = !g.state.isNight;
     for (const n of this.actors) {
-      if (n.incidentUnavailable) continue;
+      if (n.incidentUnavailable || n.witchCursed) continue;
       n.active = day || n.def.night;
       n.model.visible = n.active && distance(n.model.position, d) < 115;
       if (!n.active) continue;

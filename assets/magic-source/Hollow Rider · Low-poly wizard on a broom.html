@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Hollow Rider · Low-poly wizard on a broom</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:dark;--bg:#07040d;--fg:#e9e4f5;--mut:#9a8fb8;--acc:#d56bff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 Georgia,"Times New Roman",serif;overflow:hidden}
+#v{position:relative;height:100%}
+#c{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.ui{position:absolute;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#top{top:12px}#bot{bottom:12px;color:var(--mut);font-size:12px}
+button{background:rgba(22,14,34,.85);color:var(--fg);border:1px solid #433660;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.on{border-color:var(--acc);color:var(--acc)}
+.sp{flex:1}
+#atl{position:absolute;right:12px;top:56px;display:none;gap:8px;font-size:11px;color:var(--mut)}
+#atl canvas{width:min(38vw,190px);height:auto;border:1px solid #433660;display:block;image-rendering:pixelated}
+</style></head>
+<body><div id="v"><canvas id="c"></canvas>
+<div class="ui" id="top"><button id="bA">Atlas</button><button id="bW">Wireframe</button></div>
+<div id="atl"><div>Albedo<br></div><div>Emissive mask<br></div></div>
+<div class="ui" id="bot"><span id="st"></span><span class="sp"></span><span>Drag to orbit, scroll to zoom</span></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T=THREE,Q=Math.PI/2,V=(x,y,z)=>new T.Vector3(x,y,z);
+let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
+
+/* ===== Texture atlas: 512x512, 4x4 colour cells + tall strip for the rune handle ===== */
+const mkC=()=>{const c=document.createElement("canvas");c.width=c.height=512;return c};
+const AC=mkC(),ca=AC.getContext("2d"),EC=mkC(),ce=EC.getContext("2d");
+ce.fillStyle="#000";ce.fillRect(0,0,512,512);
+const CR=i=>[(i%4)*96,(i>>2)*128,96,128],HR=[384,0,128,512];
+const ROBE=0,LINE=1,HAT=2,GOLD=3,SKIN=4,HAIR=5,STRAW=6,CORD=7,EYE=8,LEATH=9,GEM=10,WOOD=11;
+function fc(i,col,n,glow){const[x,y,w,h]=CR(i);ca.fillStyle=col;ca.fillRect(x,y,w,h);
+ for(let k=0;k<n;k++){ca.fillStyle=rnd()<.5?"rgba(255,255,255,.07)":"rgba(0,0,0,.2)";ca.fillRect(x+rnd()*w,y+rnd()*h,2+rnd()*3,6+rnd()*30)}
+ if(glow){ce.fillStyle=glow;ce.fillRect(x,y,w,h)}}
+fc(ROBE,"#2b1346",60);fc(LINE,"#4d2080",30);fc(HAT,"#170c26",40);fc(GOLD,"#c9a23c",12);fc(SKIN,"#8b9886",20);fc(HAIR,"#cfcbe0",40);
+fc(STRAW,"#6e5527",70);fc(CORD,"#5c1a36",20);fc(EYE,"#200030",0,"#e070ff");fc(LEATH,"#130d12",25);fc(GEM,"#7a14b0",0,"#ff4dff");fc(WOOD,"#33200f",30);
+ca.fillStyle="#3b2416";ca.fillRect(...HR);
+for(let k=0;k<50;k++){ca.strokeStyle=rnd()<.5?"rgba(0,0,0,.35)":"rgba(255,200,150,.08)";ca.lineWidth=1+rnd()*1.5;const x=384+rnd()*128,y=rnd()*512;ca.beginPath();ca.moveTo(x,y);ca.lineTo(x+rnd()*4-2,y+30+rnd()*120);ca.stroke()}
+for(let r=0;r<18;r++)for(let c=0;c<6;c++){if(rnd()<.4)continue;
+ const x=384+c*21.33+10.7,y=16+r*28,s=9,sg=[[0,-s,0,s]];
+ for(let k=1+(rnd()*3|0);k>0;k--){const yy=(rnd()*2-1)*s*.8,dx=(rnd()<.5?-1:1)*6;sg.push([0,yy,dx,yy+(rnd()*2-1)*s*.7])}
+ [[ca,"#ff9bff",0],[ce,"#d040ff",6]].forEach(([g,col,bl])=>{g.strokeStyle=col;g.lineWidth=2.4;g.shadowColor="#c040ff";g.shadowBlur=bl;g.beginPath();
+  sg.forEach(l=>{g.moveTo(x+l[0],y+l[1]);g.lineTo(x+l[2],y+l[3])});g.stroke();g.shadowBlur=0})}
+const tex=new T.CanvasTexture(AC),etex=new T.CanvasTexture(EC);[tex,etex].forEach(t=>{t.encoding=T.sRGBEncoding;t.anisotropy=4});
+const atlasMat=new T.MeshStandardMaterial({name:"MAT_WitchAtlas",map:tex,emissiveMap:etex,emissive:0xffffff,emissiveIntensity:1.3,flatShading:true,roughness:.9,metalness:0,side:T.DoubleSide});
+const uvIn=(rc,u,v)=>{const[x,y,w,h]=rc,d=3;return[(x+d+u*(w-2*d))/512,1-(y+d+(1-v)*(h-2*d))/512]};
+
+/* ===== Rig: broom + rider merged into ONE static mesh, plus one animated tatter mesh ===== */
+const C=(a,b,h,s)=>new T.CylinderGeometry(a,b,h,s||8),IC=(r,d)=>new T.IcosahedronGeometry(r,d);
+function handleGeo(z0,z1,N){const S=6,P=[],U=[],I=[];
+ for(let i=0;i<=N;i++){const z=z0+(z1-z0)*i/N,tw=i*.45,k=1+.22*Math.sin(i*1.3);
+  for(let j=0;j<=S;j++){const a=j/S*Math.PI*2+tw,r=(j%2?.035:.066)*k;P.push(Math.cos(a)*r,Math.sin(a)*r,z);U.push(j/S,i/N)}}
+ for(let i=0;i<N;i++)for(let j=0;j<S;j++){const a=i*(S+1)+j,b=a+1,c=a+S+1,d=c+1;I.push(a,c,b,b,c,d)}
+ const g=new T.BufferGeometry();g.setAttribute("position",new T.Float32BufferAttribute(P,3));g.setAttribute("uv",new T.Float32BufferAttribute(U,2));
+ g.setIndex(I);g.computeVertexNormals();return g}
+
+function createWitchRig(){
+ const G=[],pm=new T.Matrix4().makeTranslation(0,.12,-.1).multiply(new T.Matrix4().makeRotationX(.22));
+ const tm=new T.Matrix4(),tq=new T.Quaternion(),te=new T.Euler();
+ function part(g,rc,p,r,s,m){g=g.index?g.toNonIndexed():g;
+  tm.compose(V(...(p||[0,0,0])),tq.setFromEuler(te.set(...(r||[0,0,0]))),V(...(s||[1,1,1])));if(m)tm.premultiply(m);g.applyMatrix4(tm);
+  const uv=g.attributes.uv;for(let i=0;i<uv.count;i++){const q=uvIn(rc,uv.getX(i),uv.getY(i));uv.setXY(i,q[0],q[1])}G.push(g)}
+ function limb(a,b,r1,r2,rc,sg){const A=V(...a),B=V(...b),d=B.clone().sub(A),mid=A.clone().add(B).multiplyScalar(.5);
+  part(C(r2,r1,d.length(),sg||5).applyMatrix4(new T.Matrix4().makeRotationFromQuaternion(new T.Quaternion().setFromUnitVectors(V(0,1,0),d.normalize()))).translate(mid.x,mid.y,mid.z),rc)}
+ /* broom */
+ part(handleGeo(-1.35,1.5,16),HR);
+ part(IC(.09,0),CR(WOOD),[0,0,1.56]);part(IC(.055,0),CR(GEM),[0,0,1.68]);
+ const bg=new T.CylinderGeometry(.07,.3,1.1,8,1,true).rotateX(Q),bp=bg.attributes.position;
+ for(let i=0;i<bp.count;i++)if(bp.getZ(i)<-.5){const j=.12+.2*Math.abs(Math.sin(Math.atan2(bp.getY(i),bp.getX(i))*3.1+1));bp.setXYZ(i,bp.getX(i)*(1+j),bp.getY(i)*(1+j),bp.getZ(i)-j*.9)}
+ part(bg,CR(STRAW),[0,0,-1.8]);
+ for(let k=0;k<8;k++){const a=k/8*Math.PI*2;part(new T.ConeGeometry(.035,1.1,3).rotateX(-Q),CR(STRAW),[Math.cos(a)*.2,Math.sin(a)*.2,-2.55],[Math.sin(a)*.3,-Math.cos(a)*.3,0])}
+ part(C(.115,.12,.12).rotateX(Q),CR(CORD),[0,0,-1.42]);part(C(.16,.165,.1).rotateX(Q),CR(CORD),[0,0,-1.62]);
+ /* robe (ragged hem via alternating hem verts) */
+ const pts=[[.55,-.15],[.42,.15],[.32,.5],[.27,.8],[.33,.98],[.22,1.14],[.12,1.2]].map(p=>new T.Vector2(p[0],p[1])),rg=new T.LatheGeometry(pts,8),rp=rg.attributes.position,np=pts.length;
+ for(let i=0;i<=8;i++){const k=i*np,o=i%2;rp.setXYZ(k,rp.getX(k)*(o?.82:1.12),rp.getY(k)+(o?.14:-.12),rp.getZ(k)*(o?.82:1.12))}
+ part(rg,CR(ROBE),0,0,0,pm);part(C(.29,.3,.09).translate(0,.62,0),CR(LINE),0,0,0,pm);
+ /* head, beard, eyes, hat */
+ part(IC(.17,0),CR(SKIN),[0,1.4,.04],0,0,pm);part(new T.ConeGeometry(.05,.18,4).rotateX(Q),CR(SKIN),[0,1.37,.2],0,0,pm);
+ [-1,1].forEach(s=>part(new T.BoxGeometry(.05,.025,.02),CR(EYE),[s*.07,1.42,.17],0,0,pm));
+ part(new T.ConeGeometry(.13,.6,6).rotateX(Math.PI),CR(HAIR),[0,1.1,.14],[.15,0,0],0,pm);
+ const hg=new T.CylinderGeometry(.02,.26,1,8,3).translate(0,.5,0),hp=hg.attributes.position;
+ for(let i=0;i<hp.count;i++){const y=hp.getY(i);hp.setXYZ(i,hp.getX(i)+y*y*.06,y-y*y*.1,hp.getZ(i)-y*y*.55)}
+ part(hg,CR(HAT),[0,1.52,0],[0,0,.04],0,pm);part(C(.47,.47,.035),CR(HAT),[0,1.5,0],[.02,0,.04],0,pm);
+ part(C(.265,.275,.08),CR(LINE),[0,1.58,0],0,0,pm);part(new T.BoxGeometry(.1,.1,.03),CR(GOLD),[0,1.58,.275],0,0,pm);part(IC(.035,0),CR(GEM),[0,1.58,.3],0,0,pm);
+ /* arms (world space, reach the handle), legs and boots */
+ [-1,1].forEach(s=>{const S=[s*.27,1.19,.14],E=[s*.38,.66,.42],H=[s*.13,.08,.62];
+  part(IC(.14,0),CR(ROBE),S);limb(S,E,.1,.115,CR(ROBE));limb(E,H,.11,.2,CR(ROBE),6);part(IC(.07,0),CR(SKIN),[s*.13,.05,.7]);
+  limb([s*.32,-.02,.02],[s*.32,-.7,0],.09,.075,CR(LEATH));part(new T.BoxGeometry(.14,.14,.3),CR(LEATH),[s*.32,-.78,.08])});
+ /* merge static parts into one geometry */
+ let n=0;G.forEach(g=>n+=g.attributes.position.count);
+ const PP=new Float32Array(n*3),NN=new Float32Array(n*3),UU=new Float32Array(n*2);let o=0;
+ G.forEach(g=>{PP.set(g.attributes.position.array,o*3);NN.set(g.attributes.normal.array,o*3);UU.set(g.attributes.uv.array,o*2);o+=g.attributes.position.count});
+ const mg=new T.BufferGeometry();mg.setAttribute("position",new T.BufferAttribute(PP,3));mg.setAttribute("normal",new T.BufferAttribute(NN,3));mg.setAttribute("uv",new T.BufferAttribute(UU,2));
+ const body=new T.Mesh(mg,atlasMat);body.name="WizardBroom_Static";
+ /* ragged tatters: 14 triangles, tips animated on the CPU */
+ const NT=14,tp=new Float32Array(NT*9),tu=new Float32Array(NT*6);
+ for(let k=0;k<NT;k++){const o2=k>6,i=k%7,ph=Math.PI+(i-3)*.42+(o2?.2:0),r=o2?.55:.47,cx=Math.sin(ph)*r,cz=-.12+Math.cos(ph)*r,tx=Math.cos(ph),tz=-Math.sin(ph),w=.12,Ln=(o2?1.3:.95)+.2*(i%2);
+  tp.set([cx-tx*w,.03,cz-tz*w,cx+tx*w,.03,cz+tz*w,cx*1.25,-.25-(o2?.15:0),cz-Ln],k*9);
+  const rc=CR(o2?LINE:ROBE);tu.set([...uvIn(rc,0,0),...uvIn(rc,1,0),...uvIn(rc,.5,1)],k*6)}
+ const tb=tp.slice(),tg=new T.BufferGeometry();
+ tg.setAttribute("position",new T.BufferAttribute(tp,3));tg.setAttribute("normal",new T.BufferAttribute(new Float32Array(NT*9),3));tg.setAttribute("uv",new T.BufferAttribute(tu,2));
+ const tat=new T.Mesh(tg,atlasMat);tat.name="RobeTatters";tat.frustumCulled=false;
+ const group=new T.Group();group.name="WizardBroomRig";group.add(body,tat);
+ const tris=n/3+NT,EM=V(0,0,-3);
+ function update(t){
+  for(let k=0;k<NT;k++){const i=k*9+6;tp[i]=tb[i]+Math.sin(t*5+k)*.1;tp[i+1]=tb[i+1]+Math.sin(t*4.3+k*1.7)*.12;tp[i+2]=tb[i+2]+Math.sin(t*3.1+k*.9)*.14}
+  tg.attributes.position.needsUpdate=true;
+  group.position.y=Math.sin(t*1.6)*.12;group.rotation.z=Math.sin(t*.9)*.12;group.rotation.x=Math.sin(t*1.2)*.04;group.updateMatrixWorld(true)}
+ return{group,update,tris,emitter:()=>group.localToWorld(EM.clone())}}
+
+/* ===== Neon particle trail (single Points draw call, additive) ===== */
+const partMat=new T.ShaderMaterial({name:"MAT_Particles_Neon",transparent:true,depthWrite:false,blending:T.AdditiveBlending,uniforms:{uPx:{value:600}},
+ vertexShader:"attribute float aAge;attribute float aSize;uniform float uPx;varying float vA;void main(){vA=aAge;vec4 mv=modelViewMatrix*vec4(position,1.);gl_PointSize=aSize*(1.-.5*aAge)*uPx/-mv.z;gl_Position=projectionMatrix*mv;}",
+ fragmentShader:"varying float vA;void main(){float d=length(gl_PointCoord-.5);float a=smoothstep(.5,.05,d)*(1.-vA);vec3 c=mix(vec3(1.,.4,1.),vec3(.45,.05,1.),vA);gl_FragColor=vec4(c*1.3,a);}"});
+function createTrail(N){const pos=new Float32Array(N*3),age=new Float32Array(N),size=new Float32Array(N),vel=[],life=[],t0=[];
+ for(let i=0;i<N;i++){size[i]=.15+rnd()*.3;vel.push(V(0,0,0));life.push(1);t0.push(0)}
+ const g=new T.BufferGeometry();g.setAttribute("position",new T.BufferAttribute(pos,3));g.setAttribute("aAge",new T.BufferAttribute(age,1));g.setAttribute("aSize",new T.BufferAttribute(size,1));
+ const pts=new T.Points(g,partMat);pts.name="BroomTrail";pts.frustumCulled=false;
+ function spawn(i,E,first){const l=life[i]=1+rnd()*1.2;t0[i]=first?rnd()*l:0;vel[i].set((rnd()-.5)*.6,(rnd()-.3)*.5,-(4.5+rnd()*1.5));
+  pos[i*3]=E.x+(rnd()-.5)*.45+vel[i].z*-0;pos[i*3+1]=E.y+(rnd()-.5)*.45;pos[i*3+2]=E.z+vel[i].z*t0[i]}
+ return{pts,init:E=>{for(let i=0;i<N;i++)spawn(i,E,true)},
+  update(dt,t,E){for(let i=0;i<N;i++){t0[i]+=dt;if(t0[i]>life[i])spawn(i,E,false);
+   vel[i].x+=Math.sin(t*3+i)*.8*dt;vel[i].y+=Math.cos(t*2.3+i*.7)*.6*dt;
+   pos[i*3]+=vel[i].x*dt;pos[i*3+1]+=vel[i].y*dt;pos[i*3+2]+=vel[i].z*dt;age[i]=Math.min(1,t0[i]/life[i])}
+   g.attributes.position.needsUpdate=g.attributes.aAge.needsUpdate=true}}}
+
+/* ===== Viewer ===== */
+const v=document.getElementById("v"),cv=document.getElementById("c"),rd=new T.WebGLRenderer({canvas:cv,antialias:true});
+rd.setPixelRatio(Math.min(devicePixelRatio,2));rd.outputEncoding=T.sRGBEncoding;
+const scene=new T.Scene();scene.background=new T.Color(0x07040d);scene.fog=new T.Fog(0x07040d,10,34);
+const cam=new T.PerspectiveCamera(42,1,.1,100);
+function rs(){const w=v.clientWidth,h=v.clientHeight;rd.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();partMat.uniforms.uPx.value=rd.getDrawingBufferSize(new T.Vector2()).y*.5/Math.tan(cam.fov*Math.PI/360)}
+addEventListener("resize",rs);rs();
+scene.add(new T.HemisphereLight(0x8a6bd1,0x1a0f20,.9));
+const dl=new T.DirectionalLight(0xc7b8ff,.8);dl.position.set(4,6,5);scene.add(dl);
+const pl=new T.PointLight(0xb64dff,1.6,7);scene.add(pl);
+const rig=createWitchRig(),trail=createTrail(260);scene.add(rig.group,trail.pts);
+rig.update(0);trail.init(rig.emitter());
+const NS=160,sp=new Float32Array(NS*3);for(let i=0;i<NS;i++){sp[i*3]=(rnd()-.5)*30;sp[i*3+1]=(rnd()-.5)*16;sp[i*3+2]=(rnd()-.5)*40}
+const sg=new T.BufferGeometry();sg.setAttribute("position",new T.BufferAttribute(sp,3));
+scene.add(new T.Points(sg,new T.PointsMaterial({color:0xb48cff,size:.07,transparent:true,opacity:.7,depthWrite:false})));
+
+const $=id=>document.getElementById(id);
+$("atl").firstElementChild.appendChild(AC);$("atl").lastElementChild.appendChild(EC);
+$("bA").onclick=()=>{const s=$("atl").style.display!="flex";$("atl").style.display=s?"flex":"none";$("bA").classList.toggle("on",s)};
+let wire=false;$("bW").onclick=()=>{wire=!wire;$("bW").classList.toggle("on",wire);scene.traverse(o=>{if(o.material&&!o.isPoints)o.material.wireframe=wire})};
+let rot=.9,pit=.15,dist=8,dT=8,auto=true,dn=false,lx=0,ly=0;const tgt=V(0,.5,-.6);
+cv.onpointerdown=e=>{dn=true;lx=e.clientX;ly=e.clientY;auto=false;cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!dn)return;rot-=(e.clientX-lx)*.008;pit=Math.max(-.4,Math.min(1.3,pit+(e.clientY-ly)*.006));lx=e.clientX;ly=e.clientY};
+cv.onpointerup=cv.onpointercancel=()=>{dn=false};
+cv.onwheel=e=>{e.preventDefault();dT=Math.max(3,Math.min(18,dT*(1+e.deltaY*.001)))};
+
+const clock=new T.Clock();let acc=0;
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+ if(auto)rot+=dt*.2;dist+=(dT-dist)*Math.min(1,dt*3);
+ cam.position.set(tgt.x+dist*Math.sin(rot)*Math.cos(pit),tgt.y+dist*Math.sin(pit),tgt.z+dist*Math.cos(rot)*Math.cos(pit));cam.lookAt(tgt);
+ rig.update(t);const E=rig.emitter();pl.position.copy(E);pl.intensity=1.4+.4*Math.sin(t*12);
+ trail.update(dt,t,E);
+ for(let i=0;i<NS;i++){sp[i*3+2]-=dt*7;if(sp[i*3+2]<-20)sp[i*3+2]+=40}sg.attributes.position.needsUpdate=true;
+ rd.render(scene,cam);
+ if((acc+=dt)>.5){acc=0;$("st").textContent="Model: "+rig.tris+" triangles · 1 material + 1 shader · 512×512 atlas · draw calls (scene): "+rd.info.render.calls}})();
+</script></body></html>

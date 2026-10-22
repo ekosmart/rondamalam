@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Crimson Express & Brick Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:dark;--bg:#07060c;--fg:#e8e6f0;--mut:#8d8aa0;--acc:#39ff6a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font:14px/1.4 Georgia,"Times New Roman",serif;overflow:hidden}
+#v{position:relative;height:100%}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+.ui{position:absolute;left:12px;right:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#top{top:12px}#bot{bottom:12px;color:var(--mut);font-size:12px}
+button{background:rgba(20,18,30,.82);color:var(--fg);border:1px solid #3a3650;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.on{border-color:var(--acc);color:var(--acc)}
+.sp{flex:1}
+</style></head>
+<body><div id="v"><canvas id="c"></canvas>
+<div class="ui" id="top"><button id="bL" class="on">Locomotive</button><button id="bP">Brick portal</button><span class="sp"></span><button id="bA" hidden>Approach</button><button id="bW">Wireframe</button></div>
+<div class="ui" id="bot"><span id="hint"></span><span class="sp"></span><span id="mats"></span></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const T=THREE,Q=Math.PI/2;
+const mk=(c,n,o)=>{const m=new T.MeshStandardMaterial(Object.assign({color:c,flatShading:true,roughness:.8,metalness:.1},o));m.name=n;return m};
+const gw=(c,n,o)=>{const m=new T.MeshBasicMaterial(Object.assign({color:c},o));m.name=n;return m};
+const M={crimson:mk(0x8c0f22,"MAT_Crimson"),char:mk(0x1d1e24,"MAT_Charcoal"),brass:mk(0xb08a3a,"MAT_Brass",{metalness:.5,roughness:.5}),
+coal:mk(0x0b0b0e,"MAT_Coal"),stone:mk(0x6c6a76,"MAT_Stone"),ground:mk(0x0e0d14,"MAT_Ground"),brick:mk(0xffffff,"MAT_Brick"),
+head:gw(0x39ff6a,"MAT_Glow_Headlight"),cab:gw(0x1fd470,"MAT_Glow_Cab"),
+beam:gw(0x39ff6a,"MAT_Glow_Beam",{transparent:true,opacity:.14,blending:T.AdditiveBlending,depthWrite:false,side:T.DoubleSide}),
+steam:gw(0x8fd9ab,"MAT_Steam",{transparent:true,opacity:.28,depthWrite:false})};
+const P=(g,m,n,x,y,z,par)=>{const o=new T.Mesh(g,m);o.name=n;o.position.set(x,y,z);par.add(o);return o};
+const B=(w,h,d)=>new T.BoxGeometry(w,h,d),C=(a,b,h,s)=>new T.CylinderGeometry(a,b,h,s||8),IC=(r,d)=>new T.IcosahedronGeometry(r,d);
+
+/* ---------- Locomotive (front = +Z, 1 unit = 1 m) ---------- */
+function buildLocomotive(){
+ const g=new T.Group();g.name="Locomotive";g.position.y=.16;
+ const wheels=[],rods=[],puffs=[];
+ function wheel(r,x,z){const w=new T.Group(),s=Math.sign(x);w.name="Wheel";w.position.set(x,r,z);w.userData.r=r;
+  P(C(r,r,.14,10).rotateZ(Q),M.char,"WheelDisc",0,0,0,w);
+  P(C(r*.4,r*.4,.2,6).rotateZ(Q),M.crimson,"WheelHub",s*.03,0,0,w);
+  if(r>.5){P(B(.1,r*1.7,.08),M.crimson,"Spoke",s*.1,0,0,w);P(B(.1,.08,r*1.7),M.crimson,"Spoke",s*.1,0,0,w)}
+  g.add(w);wheels.push(w)}
+ P(B(1.6,.28,5.8),M.char,"Chassis",0,.8,.15,g);
+ P(C(.7,.7,3.2).rotateX(Q),M.crimson,"Boiler",0,1.6,.7,g);
+ [-.3,.7,1.7].forEach(z=>P(C(.73,.73,.12).rotateX(Q),M.brass,"BoilerBand",0,1.6,z,g));
+ P(C(.72,.72,.7).rotateX(Q),M.char,"Smokebox",0,1.6,2.55,g);
+ P(C(.3,.2,.9),M.char,"Chimney",0,2.8,1.9,g);P(C(.36,.36,.08),M.brass,"ChimneyRim",0,3.28,1.9,g);
+ const dome=new T.SphereGeometry(.32,8,5,0,6.283,0,Q);
+ P(dome,M.crimson,"SteamDome",0,2.3,1,g);P(dome,M.brass,"SandDome",0,2.3,.1,g);
+ P(C(.24,.24,.4).rotateX(Q),M.brass,"LampHousing",0,2.55,2.55,g);P(IC(.17,1),M.head,"Headlight_Top",0,2.55,2.78,g);
+ [-1,1].forEach(s=>{const k=s<0?"L":"R";
+  P(C(.2,.2,.1).rotateX(Q),M.brass,"EyeRing",s*.32,1.75,2.92,g);
+  P(IC(.15,1),M.head,"Headlight_"+k,s*.32,1.75,2.97,g);
+  P(new T.ConeGeometry(.55,3,8,1,true).rotateX(-Q),M.beam,"Beam_"+k,s*.32,1.75,4.47,g)});
+ P(B(1.7,1.6,1.7),M.crimson,"Cab",0,1.75,-1.7,g);P(B(1.76,.2,1.76),M.char,"CabTrim",0,1.05,-1.7,g);
+ P(B(2,.14,2.1),M.char,"CabRoof",0,2.62,-1.7,g);
+ [-1,1].forEach(s=>P(B(.04,.5,.6),M.cab,"CabWindow",s*.86,1.95,-1.7,g));P(B(.6,.5,.04),M.cab,"CabWindowBack",0,1.95,-2.56,g);
+ P(B(1.7,.2,.15),M.crimson,"BufferBeam",0,.7,3,g);
+ P(new T.ConeGeometry(.85,1.1,4).rotateY(Math.PI/4).rotateX(Q),M.char,"Cowcatcher",0,.45,3.45,g).scale.y=.55;
+ [-.2,.8,1.8].forEach(z=>[-.92,.92].forEach(x=>wheel(.55,x,z)));
+ [-.9,.9].forEach(x=>wheel(.3,x,2.5));
+ [-1,1].forEach(s=>rods.push(P(B(.06,.1,2.1),M.brass,"ConnectingRod",s*1.12,.55,.8,g)));
+ P(B(1.7,1,2.2),M.char,"Tender",0,.95,-4,g);P(B(1.78,.18,2.28),M.crimson,"TenderTrim",0,1.45,-4,g);
+ P(IC(.7,0),M.coal,"Coal",0,1.6,-4,g).scale.set(1.1,.45,1.35);
+ P(B(.16,.16,.5),M.brass,"Coupler",0,.7,-2.85,g);
+ [-3.5,-4.5].forEach(z=>[-.8,.8].forEach(x=>wheel(.4,x,z)));
+ for(let i=0;i<9;i++){const p=P(IC(.22,0),M.steam,"SteamPuff",0,3.4,1.9,g);p.userData.o=i*.29;puffs.push(p)}
+ return{g,wheels,rods,puffs}}
+function buildTrack(){const t=new T.Group(),sl=new T.Group();t.name="Track";sl.name="Sleepers";t.add(sl);
+ for(let i=-30;i<30;i++)P(B(2.7,.08,.28),M.char,"Sleeper",0,.04,i*1.2,sl);
+ [-.92,.92].forEach(x=>P(B(.12,.12,80),M.brass,"Rail",x,.1,0,t));return{t,sl}}
+
+/* ---------- Brick wall portal (opening faces +Z) ---------- */
+const FRAG=`uniform float uTime,uProx;varying vec2 vP;
+float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*n(p);p=p*2.03+7.1;a*=.5;}return v;}
+vec3 brick(vec2 p){float r=floor(p.y/.25);float od=mod(r,2.);vec2 q=vec2(p.x/.5-.5*od,p.y/.25);vec2 c=floor(q),f=fract(q);
+ float m=step(.04,f.x)*step(f.x,.96)*step(.1,f.y)*step(f.y,.9);
+ vec3 col=mix(vec3(.42,.15,.11),vec3(.3,.1,.09),h(c+r));col*=.8+.35*n(p*8.);return mix(vec3(.1,.09,.1),col,m);}
+vec3 galaxy(vec2 c){float r=length(c);float a=atan(c.y,c.x)+2./(r+.35)-uTime*.45;vec2 q=vec2(cos(a),sin(a))*r;
+ float f=fbm(q*2.6+uTime*.04),g=fbm(q*5.+4.);
+ vec3 col=mix(vec3(.03,0.,.14),vec3(.05,.65,.5),f);col=mix(col,vec3(.75,.2,.95),g*smoothstep(.2,1.,r));
+ col+=vec3(1.,.95,.8)*exp(-r*4.5)*1.4;
+ vec2 s=floor(c*38.+vec2(uTime*.2,0.));col+=step(.975,h(s))*(.6+.4*sin(uTime*3.+h(s)*30.));return col;}
+void main(){vec2 c=vP-vec2(0.,2.);float d=length(c);
+ vec2 off=normalize(c+1e-4)*sin(d*14.-uTime*4.)*.035*uProx;
+ vec2 p=vP+off;
+ float nz=fbm(vP*3.)*.75+d*.2;float th=mix(-.1,1.3,uProx);
+ float m=smoothstep(th-.03,th+.03,nz);
+ float e=(1.-smoothstep(0.,.07,abs(nz-th)))*(1.-smoothstep(.9,1.,uProx));
+ vec3 col=mix(galaxy(c*.9+off),brick(p)*.85,m)+vec3(.2,1.,.5)*e*1.8;
+ gl_FragColor=vec4(col,1.);}`;
+function buildPortal(){
+ const g=new T.Group();g.name="BrickPortal";const pos=[];
+ for(let r=0;r<22;r++){const od=r%2,cy=(r+.5)*.25;
+  for(let i=-9;i<9;i++){const cx=(i+.5+.5*od)*.5,ax=Math.abs(cx);
+   if(ax>4.1||(ax<1.95&&(cy<2.5||Math.hypot(cx,cy-2.5)<1.95)))continue;pos.push([cx,cy])}}
+ const bricks=new T.InstancedMesh(B(.46,.21,.3),M.brick,pos.length),mt=new T.Matrix4(),col=new T.Color();bricks.name="Bricks";
+ pos.forEach((p,i)=>{mt.setPosition(p[0],p[1],0);bricks.setMatrixAt(i,mt);col.setHSL(.02+Math.random()*.02,.5,.2+Math.random()*.1);bricks.setColorAt(i,col)});
+ bricks.instanceMatrix.needsUpdate=true;bricks.instanceColor.needsUpdate=true;g.add(bricks);
+ [-1,1].forEach(s=>{for(let y=.15;y<2.5;y+=.3)P(B(.4,.28,.4),M.stone,"Jamb",s*1.7,y,.05,g)});
+ for(let k=0;k<11;k++){const a=(k+.5)/11*Math.PI,v=P(B(.4,.5,.4),M.stone,k==5?"Keystone":"Voussoir",Math.cos(a)*1.7,2.5+Math.sin(a)*1.7,.05,g);
+  v.rotation.z=a;if(k==5)v.scale.set(1.35,1.1,1)}
+ const sh=new T.Shape();sh.moveTo(-1.5,0);sh.lineTo(1.5,0);sh.lineTo(1.5,2.5);sh.absarc(0,2.5,1.5,0,Math.PI,false);sh.lineTo(-1.5,0);
+ const mat=new T.ShaderMaterial({name:"MAT_Portal_Nebula",side:T.DoubleSide,uniforms:{uTime:{value:0},uProx:{value:0}},
+  vertexShader:"varying vec2 vP;void main(){vP=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",fragmentShader:FRAG});
+ P(new T.ShapeGeometry(sh,24),mat,"PortalSurface",0,0,.12,g);
+ return{g,mat}}
+window.LowPolyAssets={buildLocomotive,buildTrack,buildPortal,materials:M};
+
+/* ---------- Viewer ---------- */
+const v=document.getElementById("v"),cv=document.getElementById("c"),rd=new T.WebGLRenderer({canvas:cv,antialias:true});
+rd.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new T.Scene();scene.background=new T.Color(0x07060c);scene.fog=new T.Fog(0x07060c,18,48);
+const cam=new T.PerspectiveCamera(42,1,.1,100);
+function rs(){const w=v.clientWidth,h=v.clientHeight;rd.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener("resize",rs);rs();
+P(new T.CircleGeometry(40,16).rotateX(-Q),M.ground,"Ground",0,0,0,scene);
+scene.add(new T.HemisphereLight(0x7f8fd0,0x20141c,.8));
+const dl=new T.DirectionalLight(0xffffff,.7);dl.position.set(5,9,7);scene.add(dl);
+const gl=new T.PointLight(0x39ff6a,1.6,9);gl.position.set(0,1.4,4.4);scene.add(gl);
+const pl=new T.PointLight(0x66ffd0,0,10);pl.position.set(0,2.3,1.6);scene.add(pl);
+const loco=buildLocomotive(),trk=buildTrack(),portal=buildPortal();scene.add(loco.g,trk.t,portal.g);
+
+let mode="loco",rot=.7,pit=.2,dist=13,dT=13,auto=true,wire=false,near=false;const tgt=new T.Vector3();
+const $=id=>document.getElementById(id);
+const MATS={loco:"MAT_Glow_Headlight, MAT_Glow_Cab, MAT_Glow_Beam, MAT_Steam, MAT_Crimson, MAT_Charcoal, MAT_Brass",
+ portal:"MAT_Portal_Nebula (uTime, uProx), MAT_Brick, MAT_Stone"};
+function setMode(m){mode=m;loco.g.visible=trk.t.visible=gl.visible=m=="loco";portal.g.visible=pl.visible=m=="portal";
+ $("bL").classList.toggle("on",m=="loco");$("bP").classList.toggle("on",m=="portal");$("bA").hidden=m=="loco";
+ if(m=="loco"){tgt.set(0,1.5,-.5);rot=.7;pit=.2;dT=13;auto=true}else{tgt.set(0,2.2,0);rot=.25;pit=.12;dT=16;near=false;$("bA").textContent="Approach"}
+ $("hint").textContent=m=="loco"?"Drag to orbit, scroll to zoom.":"Drag to orbit. Move in close and the wall gives way.";
+ $("mats").textContent=MATS[m]}
+$("bL").onclick=()=>setMode("loco");$("bP").onclick=()=>setMode("portal");
+$("bA").onclick=()=>{near=!near;dT=near?3.6:16;$("bA").textContent=near?"Retreat":"Approach"};
+$("bW").onclick=()=>{wire=!wire;$("bW").classList.toggle("on",wire);scene.traverse(o=>{if(o.material)o.material.wireframe=wire})};
+let dn=false,lx=0,ly=0;
+cv.onpointerdown=e=>{dn=true;lx=e.clientX;ly=e.clientY;auto=false;cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!dn)return;rot-=(e.clientX-lx)*.008;pit=Math.max(-.05,Math.min(1.3,pit+(e.clientY-ly)*.006));lx=e.clientX;ly=e.clientY};
+cv.onpointerup=cv.onpointercancel=()=>{dn=false};
+cv.onwheel=e=>{e.preventDefault();dT=Math.max(mode=="loco"?5:3.2,Math.min(26,dT*(1+e.deltaY*.001)))};
+setMode("loco");
+
+const clock=new T.Clock(),PC=new T.Vector3(0,2,.2);
+(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
+ if(auto&&mode=="loco")rot+=dt*.25;
+ dist+=(dT-dist)*Math.min(1,dt*3);
+ cam.position.set(tgt.x+dist*Math.sin(rot)*Math.cos(pit),tgt.y+dist*Math.sin(pit),tgt.z+dist*Math.cos(rot)*Math.cos(pit));cam.lookAt(tgt);
+ if(mode=="loco"){
+  loco.wheels.forEach(w=>{w.rotation.x+=dt*4/w.userData.r});
+  const a=loco.wheels[0].rotation.x;loco.rods.forEach(r=>{r.position.y=.55-.2*Math.sin(a);r.position.z=.8+.2*Math.cos(a)});
+  trk.sl.position.z=-((t*4)%1.2);
+  loco.puffs.forEach(p=>{const k=((t+p.userData.o)%2.6)/2.6;p.position.set(Math.sin(p.userData.o*5)*.12,3.4+k*2.2,1.9-k*3);p.scale.setScalar(.2+Math.sin(k*Math.PI)*1.2)});
+  const f=.8+.2*Math.sin(t*9)*Math.sin(t*2.3);M.head.color.setRGB(.22*f,f,.42*f);M.cab.color.setRGB(.12,.83*(.75+.25*Math.sin(t*5+1)),.44);
+ }else{
+  const x=Math.max(0,Math.min(1,(cam.position.distanceTo(PC)-4.5)/7.5)),tp=1-x*x*(3-2*x),u=portal.mat.uniforms;
+  u.uTime.value=t;u.uProx.value+=(tp-u.uProx.value)*Math.min(1,dt*4);pl.intensity=u.uProx.value*2.2}
+ rd.render(scene,cam)})();
+</script></body></html>

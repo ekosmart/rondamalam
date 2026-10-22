@@ -1,0 +1,51 @@
+#magic-controls {
+  position: absolute;
+  right: 24px;
+  bottom: 300px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 235px;
+  pointer-events: auto;
+  z-index: 13;
+}
+#magic-controls.hidden {
+  display: none;
+}
+#magic-controls button {
+  background: #23343de8;
+  min-height: 42px;
+  padding: 8px 12px;
+}
+#magic-transition {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: #baacff;
+  opacity: 0;
+  z-index: 90;
+  transition: opacity 0.12s linear;
+}
+.inside-academy #hud > :not(#magic-controls):not(.mobile-pad) {
+  display: none !important;
+}
+.inside-academy #magic-controls {
+  top: 16px;
+  left: 16px;
+  right: auto;
+  bottom: auto;
+  max-width: 320px;
+}
+.inside-academy .mobile-pad {
+  z-index: 14;
+}
+@media (max-width: 700px) {
+  #magic-controls {
+    right: 16px;
+    bottom: 300px;
+    max-width: 180px;
+  }
+  .inside-academy #magic-controls {
+    max-width: calc(100vw - 32px);
+  }
+}

@@ -1,3 +1,4 @@
+import {createWitchRig} from "./magic/rider-model.js";
 import { makeGyroBall } from "./frontier-models.js";
 import {
   makeLivestock,
@@ -18,6 +19,7 @@ import {
 } from "./models.js";
 
 export function makeMount(def, tech = {}) {
+  if (def.id === "sapu") return createWitchRig(true).group;
   if (def.id === "gyroball") return makeGyroBall();
   if (def.id === "sembrani") {
     const horse = makeLivestock("horse", false, true);
@@ -240,6 +242,7 @@ export function makeMount(def, tech = {}) {
   return g;
 }
 export function animateMount(g, id, t, moving) {
+  if (id === "sapu") { g.rotation.z=Math.sin(t*2)*.05; return; }
   if (id === "gyroball") {
     if (moving) g.userData.shell.rotation.x = t * 6;
     return;

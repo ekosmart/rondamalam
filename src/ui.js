@@ -1,3 +1,4 @@
+import { STATION, LARAS } from "./magic/rules.js";
 import { GHOST_VOICES } from "./ghost-audio.js";
 import { TouchJoystick } from "./touch-joystick.js";
 import { SHOP_ITEMS, DINOSAURS } from "./frontier-data.js";
@@ -190,7 +191,7 @@ export class UI {
     this.game.dragging = false;
   }
   open(type) {
-    if (this.game.spirit?.active && !["dialogue", "journal", "help", "settings"].includes(type)) {
+    if ((this.game.spirit?.active || this.game.magic?.active) && !["dialogue", "journal", "help", "settings"].includes(type)) {
       this.toast("Kembali ke desa untuk membuka menu ini.");
       return;
     }
@@ -376,7 +377,7 @@ export class UI {
       )}</div><div class="note-box">Api + Angin membentuk Tornado Api. Air + Tanah membentuk Akar Pasang. Elemen sama memperkuat resonansi. Pendamping memperoleh EXP setiap pertarungan; awakening membuka serangan area yang lebih besar.</div>`;
     }
     if (type === "journal")
-      return `${this.game.coast?.journal() || ""}${this.game.spirit?.journal() || ""}<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
+      return `${this.game.magic?.journal() || ""}${this.game.coast?.journal() || ""}${this.game.spirit?.journal() || ""}<div class="note-box">Ekspedisi baru: ${button("frontier-waypoint", "Mas Elon · Space Z", "pill-button", 'data-id="elon"')} ${button("frontier-waypoint", "Dr John · Sukarame Park", "pill-button", 'data-id="john"')}<p>Dinosaurus: ${d.stats.dinoTagged}/5 jenis · Alien ditangkap: ${d.stats.aliensCaptured} · Antariksa: ${d.frontier.spaceCollected.length}/3 lokasi</p></div><div class="story-block"><span class="eyebrow">PROLOG · SEGEL YANG PECAH</span><h3>Malam tak lagi sekadar gelap.</h3><p>Sindikat curanmor membongkar makam keramat untuk menyembunyikan jarahan. Segel Mustika Bumi pecah. Murka Nyi Roro Kidul membuka celah ke alam gaib, dan Sukarame kehilangan batas antara yang hidup dan yang mati.</p></div><div class="quest-list">${QUESTS.map(
         (q) => {
           const status = d.quests[q.id],
             progress = Math.min(q.target, d.stats[q.stat]);
@@ -390,7 +391,7 @@ export class UI {
   weaponCard(w, craft) {
     const d = this.game.state.data,
       owned = d.weapons.includes(w.id);
-    return `<div class="item-card ${d.weapon === w.id ? "equipped" : ""}"><span class="item-art" style="color:${ELEMENTS[w.element]}">${icon(w.icon, 34)}</span><span class="item-tag">${w.element} · ${w.damage} ATK</span><h3>${w.name}</h3><p>${w.desc}</p><small class="cost">${owned ? "Milikmu" : w.questOnly ? "Hadiah quest Prof William" : costText(w.cost)}</small>${button(owned ? "equip-weapon" : "craft", d.weapon === w.id ? "Sedang dipakai" : owned ? "Gunakan" : w.questOnly ? "Temui Prof William" : "Tempa pusaka", "pill-button", `data-id="${w.id}" ${d.weapon === w.id || (!owned && (w.questOnly || !this.game.state.afford(w.cost))) ? "disabled" : ""}`)}</div>`;
+    return `<div class="item-card ${d.weapon === w.id ? "equipped" : ""}"><span class="item-art" style="color:${ELEMENTS[w.element]}">${icon(w.icon, 34)}</span><span class="item-tag">${w.element} · ${w.damage} ATK</span><h3>${w.name}</h3><p>${w.desc}</p><small class="cost">${owned ? "Milikmu" : w.questOnly ? `Hadiah quest ${w.questNpc || "Prof William"}` : costText(w.cost)}</small>${button(owned ? "equip-weapon" : "craft", d.weapon === w.id ? "Sedang dipakai" : owned ? "Gunakan" : w.questOnly ? `Temui ${w.questNpc || "Prof William"}` : "Tempa pusaka", "pill-button", `data-id="${w.id}" ${d.weapon === w.id || (!owned && (w.questOnly || !this.game.state.afford(w.cost))) ? "disabled" : ""}`)}</div>`;
   }
   dialogue(npc) {
     this.open("dialogue");
@@ -756,6 +757,14 @@ export class UI {
       ctx.beginPath();
       ctx.arc(X(e.pos.x), Y(e.pos.z), full ? 2.5 : 3, 0, Math.PI * 2);
       ctx.fill();
+    }
+    if (this.game.magic?.ready) {
+      ctx.fillStyle = "#bda7ec";
+      ctx.fillRect(X(STATION.x) - 5, Y(STATION.z) - 4, 10, 8);
+      if (!d.magic.ticket) {
+        ctx.beginPath(); ctx.arc(X(LARAS.x), Y(LARAS.z), 3, 0, Math.PI * 2); ctx.fill();
+        if (full) {ctx.font = "500 11px sans-serif"; ctx.fillText("Bu Laras", X(LARAS.x), Y(LARAS.z) - 8);}
+      }
     }
     for (const p of this.game.world.incidentWorld.pickups) {
       if (

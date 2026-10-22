@@ -1103,3 +1103,19 @@ ZONES.unshift(
     icon: "fire",
   },
 );
+
+WEAPONS.push({
+  id: "tongkat-sihir", name: "Tongkat Sihir", element: "Gaib", damage: 42,
+  range: 48, projectile: true, questOnly: true, questNpc: "Prof. Arun", icon: "star",
+  desc: "Hadiah pemutus kutukan Akademi. Mantra jarak jauh, dapat digunakan sambil naik sapu.",
+  cost: {},
+});
+MOUNTS.push({
+  id: "sapu", name: "Sapu Terbang", speed: 31, cost: 0, questOnly: true,
+  questNpc: "Prof. Arun", icon: "wind", color: "#ac84cf",
+  desc: "Hadiah tugas halaman Akademi Sihir. Terbang dengan T/C atau tombol panah; B untuk mendarat.",
+});
+ZONES.unshift({
+  name: "Stasiun Tengah Malam", sub: "Peron 13, troli dan pintu bata menuju Akademi Sihir.",
+  x: -185, z: 255, r: 34, icon: "moon",
+});

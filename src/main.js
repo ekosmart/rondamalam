@@ -1,3 +1,4 @@
+import { MagicEvent } from "./magic/event.js";
 import { LaserEffects } from "./laser-effects.js";
 import "./joystick.css";
 import { VillageWeather } from "./weather.js";
@@ -284,6 +285,7 @@ class Game {
     this.spirit = new SpiritRealm(this);
     this.weather = new VillageWeather(this);
     this.coast = new Coast(this);
+    this.magic = new MagicEvent(this);
     this.enemies.forEach((e) => scaleEnemy(e, this.state.data.level));
     this.bindControls();
     this.applyQuality();
@@ -311,7 +313,7 @@ class Game {
     const d = this.state.data;
     return (
       d.riding &&
-      (["naga", "ufo", "sembrani"].includes(d.mount) ||
+      (["naga", "ufo", "sembrani", "sapu"].includes(d.mount) ||
         (d.mount === "mecha" &&
           d.incidents.tech.mechaFlight &&
           this.mechaAirborne))
@@ -647,6 +649,7 @@ class Game {
   }
   action(action, args = {}) {
     if (this.pwa?.action(action)) return;
+    if (this.started && this.magic?.action(action, args)) return;
     if (this.started && this.spirit?.action(action, args)) return;
     if (this.started && this.coast?.action(action, args)) return;
     if (this.started && this.expeditions?.action(action, args)) return;
@@ -1043,6 +1046,7 @@ class Game {
     const it = this.interactable;
     if (!it) return;
     if (
+      this.magic?.interact(it) ||
       this.coast.interact(it) ||
       this.spirit.interact(it) ||
       this.weather.interact(it) ||
@@ -1136,7 +1140,7 @@ class Game {
     const d = this.state.data,
       candidates = [];
     for (const n of this.npcs)
-      if (n.active && !n.incidentUnavailable && distance(d, n.def) < 4.4)
+      if (n.active && !n.witchCursed && !n.incidentUnavailable && distance(d, n.def) < 4.4)
         candidates.push({
           dist: distance(d, n.def),
           type: "npc",
@@ -1174,6 +1178,7 @@ class Game {
         label: "Ritual Mustika Bumi · 6 sari gaib",
       });
     candidates.push(
+      ...(this.magic?.interactions() || []),
       ...(this.coast?.interactions() || []),
       ...(this.spirit?.interactions() || []),
       ...(this.life?.interactions() || []),
@@ -1192,7 +1197,7 @@ class Game {
           e.active &&
           e.hp > 0 &&
           (!e.dino || e === this.lockedTarget) &&
-          (!ghostsOnly || (!e.human && !e.incident && !e.dino)) &&
+          (!ghostsOnly || (!e.human && !e.incident && !e.dino && !e.witch)) &&
           distance(e.pos, origin) < range,
       )
       .sort((a, b) => distance(a.pos, origin) - distance(b.pos, origin));
@@ -1214,6 +1219,7 @@ class Game {
     }
     if (this.cooldowns.attack > 0 || this.deathTimer > 0) return;
     const d = this.state.data;
+    if (d.weapon === "tongkat-sihir") { this.ranged.shoot(); return; }
     if (d.riding) {
       if (this.altitude > 0) this.land();
       d.riding = false;
@@ -1405,6 +1411,7 @@ class Game {
   }
   damageEnemy(e, amount, source = "player", type = "arcane") {
     if (!e.active || e.hp <= 0) return;
+    if (e.witch) { this.magic.damage(e, amount); return; }
     if (amount > 0 && ["player", "missile", "tractor", "companion"].includes(source)) {
       e.provoked = 24;
       if (e.incident) e.incident.retaliation = 12;
@@ -1628,9 +1635,11 @@ class Game {
             ? 2.7
             : d.mount === "sembrani"
               ? 1.3
-              : d.mount === "gyroball"
-                ? 0.15
-                : 0.65
+              : d.mount === "sapu"
+                ? 1.15
+                : d.mount === "gyroball"
+                  ? 0.15
+                  : 0.65
           : 0),
       d.z,
     );
@@ -1757,6 +1766,7 @@ class Game {
   updateEnemies(dt) {
     const d = this.state.data;
     for (const e of this.enemies) {
+      if (e.witch) continue;
       scaleEnemy(e, d.level);
       if (e.raid || e.incident || e.dino || e.heldByPlayer) continue;
       if (e.respawn > 0) {
@@ -1870,7 +1880,7 @@ class Game {
       }
     }
     for (const n of this.npcs) {
-      if (n.ambient || n.incidentUnavailable) continue;
+      if (n.ambient || n.witchCursed || n.incidentUnavailable) continue;
       n.active = this.state.isNight ? n.def.night : n.def.day;
       n.model.visible = n.active;
       if (n.active) {
@@ -1942,6 +1952,7 @@ class Game {
     this.bike?.position.set(d.x, this.world.groundHeight(d.x, d.z), d.z);
   }
   pickTarget(clientX, clientY) {
+    if (this.magic?.active) { if (!this.ui.panel) this.magic.cast(); return; }
     if (this.spirit?.active) {
       if (!this.ui.panel) this.spirit.attack();
       return;
@@ -2028,6 +2039,7 @@ class Game {
     this.lastTime = t;
     if (document.hidden) return;
     this.elapsed += dt;
+    if (this.magic?.active) { this.magic.frame(dt, this.elapsed); return; }
     if (this.spirit?.active) {
       this.audio.ghostVoices.pause(true);
       this.audio.setWeather({}, true);
@@ -2091,6 +2103,7 @@ class Game {
         this.weather.update(dt);
         this.spirit.updateVillage(dt, this.elapsed);
         this.coast.update(dt, this.elapsed);
+        this.magic.update(dt, this.elapsed);
         this.ranged.update(dt);
         this.updateTarget();
         this.mountCombat.update(dt);

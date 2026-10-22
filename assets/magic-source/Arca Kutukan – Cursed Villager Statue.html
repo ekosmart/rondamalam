@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arca Kutukan – Cursed Villager Statue</title>
+<style>
+:root{color-scheme:dark;--fg:#e4d9f2;--ac:#c58bff;--pn:rgba(14,10,22,.74);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;color:var(--fg);font:13px/1.45 ui-monospace,Menlo,Consolas,monospace;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#2a1d3b 0%,#120c1c 55%,#07050b 100%)}
+canvas{display:block}
+#ui{position:fixed;left:12px;top:calc(12px + env(safe-area-inset-top,0px));background:var(--pn);border:1px solid #3d2a58;padding:10px 12px;max-width:calc(100vw - 24px)}
+#ui b{color:var(--ac);letter-spacing:.08em}#ui span{display:block;opacity:.7;margin-bottom:8px}
+#b{display:flex;flex-wrap:wrap;gap:6px}
+button{background:#150f20;color:var(--fg);border:1px solid #4b3470;padding:5px 9px;font:inherit;cursor:pointer}
+button.on{background:#33205a;border-color:var(--ac);color:var(--ac)}
+small{display:block;margin-top:8px;opacity:.6}
+</style></head><body>
+<div id="ui"><b>ARCA KUTUKAN</b><span>Villager cursed to stone · low-poly · drag to orbit, scroll to zoom</span><div id="b"></div><small id="st"></small></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const PI=Math.PI;
+const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);
+R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;document.body.appendChild(R.domElement);
+const S=new THREE.Scene();S.fog=new THREE.FogExp2(0x120c1c,.05);
+const C=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,60);C.position.set(3.4,2.6,5);
+const OC=new THREE.OrbitControls(C,R.domElement);OC.target.set(0,1.65,0);OC.enableDamping=true;OC.minDistance=2.5;OC.maxDistance=11;OC.maxPolarAngle=PI*.52;OC.update();
+
+// ---------- procedural stone + glowing crack maps (shared crack network) ----------
+let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+const segs=[];(function crack(x,y,a,len,d){let px=x,py=y;for(let i=0;i<len;i++){a+=(rnd()-.5)*.9;const nx=px+Math.cos(a)*(.02+rnd()*.025),ny=py+Math.sin(a)*(.02+rnd()*.025);segs.push([px,py,nx,ny,d]);px=nx;py=ny;if(d<3&&rnd()<.13)crack(px,py,a+(rnd()<.5?-1:1)*(.6+rnd()*.6),len*.55|0,d+1)}});
+for(let i=0;i<10;i++)(function c(x,y,a,len,d){let px=x,py=y;for(let k=0;k<len;k++){a+=(rnd()-.5)*.9;const nx=px+Math.cos(a)*(.02+rnd()*.025),ny=py+Math.sin(a)*(.02+rnd()*.025);segs.push([px,py,nx,ny,d]);px=nx;py=ny;if(d<3&&rnd()<.13)c(px,py,a+(rnd()<.5?-1:1)*(.6+rnd()*.6),len*.55|0,d+1)}})(rnd(),rnd(),rnd()*6.28,11,0);
+function cv(n){const c=document.createElement('canvas');c.width=c.height=n;return c}
+function stone(kind){const n=256,c=cv(n),g=c.getContext('2d'),e=cv(n),h=e.getContext('2d');
+ g.fillStyle=kind==='shirt'?'#8b8d8a':kind==='sarong'?'#6f716f':'#7d7f7c';g.fillRect(0,0,n,n);
+ for(let i=0;i<900;i++){g.fillStyle=`rgba(${rnd()<.5?'20,22,24':'200,203,198'},${.05+rnd()*.14})`;g.fillRect(rnd()*n,rnd()*n,1+rnd()*5,1+rnd()*5)}
+ for(let i=0;i<28;i++){g.fillStyle=`rgba(25,26,30,${.04+rnd()*.07})`;g.fillRect(rnd()*n,rnd()*n*.6,1+rnd()*3,30+rnd()*120)}
+ g.strokeStyle='rgba(20,21,24,.55)';g.lineWidth=2;
+ if(kind==='sarong'){for(let i=0;i<=n;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,n);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(n,i);g.stroke()}g.fillStyle='rgba(20,21,24,.25)';for(let i=0;i<n;i+=64)g.fillRect(i,0,12,n);for(let i=0;i<n;i+=64)g.fillRect(0,i,n,12)}
+ if(kind==='shirt'){g.lineWidth=1.5;for(let i=0;i<9;i++){g.beginPath();g.moveTo(rnd()*n,0);g.quadraticCurveTo(rnd()*n,n/2,rnd()*n,n);g.stroke()}}
+ h.fillStyle='#000';h.fillRect(0,0,n,n);g.lineCap=h.lineCap='round';
+ segs.forEach(s=>{const w=3-s[4]*.6;g.strokeStyle='#17181b';g.lineWidth=w+1.8;g.beginPath();g.moveTo(s[0]*n,s[1]*n);g.lineTo(s[2]*n,s[3]*n);g.stroke();
+  h.strokeStyle='rgba(150,60,255,.3)';h.lineWidth=w+3;h.beginPath();h.moveTo(s[0]*n,s[1]*n);h.lineTo(s[2]*n,s[3]*n);h.stroke();
+  h.strokeStyle='#d9a6ff';h.lineWidth=Math.max(1,w-1);h.beginPath();h.moveTo(s[0]*n,s[1]*n);h.lineTo(s[2]*n,s[3]*n);h.stroke()});
+ const t=a=>{const x=new THREE.CanvasTexture(a);x.wrapS=x.wrapT=THREE.RepeatWrapping;x.encoding=THREE.sRGBEncoding;return x};return{map:t(c),em:t(e)}}
+const mats=[];
+function M(k,rep,col){const s=stone(k);s.map.repeat.set(rep,rep);s.em.repeat.set(rep,rep);
+ const m=new THREE.MeshStandardMaterial({map:s.map,emissiveMap:s.em,emissive:0xffffff,emissiveIntensity:1.2,flatShading:true,roughness:.95,metalness:0,color:col||0xffffff});mats.push(m);return m}
+const skin=M('skin',.6),shirt=M('shirt',.7),sarong=M('sarong',1),base=M('skin',1,0x9a9c99);
+const dark=new THREE.MeshStandardMaterial({color:0x101114,flatShading:true,roughness:1});
+
+// ---------- geometry helpers ----------
+function J(g,a){const p=g.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),h=k=>{const s=Math.sin(x*127.1+y*311.7+z*74.7+k)*43758.5453;return s-Math.floor(s)-.5};p.setXYZ(i,x+h(0)*a,y+h(1)*a,z+h(2)*a)}return g}
+function P(par,g,m,x,y,z,rx,ry,rz){const o=new THREE.Mesh(g,m);o.position.set(x||0,y||0,z||0);o.rotation.set(rx||0,ry||0,rz||0);par.add(o);return o}
+const cyl=(a,b,h,s)=>J(new THREE.CylinderGeometry(a,b,h,s),.012),bx=(w,h,d)=>J(new THREE.BoxGeometry(w,h,d),.01);
+
+// ---------- statue ----------
+const root=new THREE.Group();S.add(root);
+P(root,J(new THREE.CylinderGeometry(1,1.18,.25,7),.06),base,0,.125,0);
+[[.8,.3,.75,.16],[-.85,.28,.4,.12],[.2,.3,-.95,.14],[-.4,.3,-.8,.1]].forEach(a=>P(root,J(new THREE.DodecahedronGeometry(a[3],0),.03),base,a[0],a[1],a[2]));
+const F=new THREE.Group();F.position.y=.25;F.rotation.y=-.35;root.add(F);
+
+// feet & calves (front foot braced, back heel lifted)
+P(F,bx(.2,.12,.4),skin,.17,.06,.3);P(F,bx(.2,.12,.4),skin,-.2,.1,-.28,-.45);
+P(F,cyl(.07,.09,.3,6),skin,.17,.22,.24,.2);P(F,cyl(.07,.09,.3,6),skin,-.2,.26,-.22,-.45);
+// sarong: skirt, bunched pleat, rolled waistband, knot tails
+const sk=P(F,J(new THREE.CylinderGeometry(.3,.36,.95,8),.035),sarong,0,.83,0,.1);
+P(F,bx(.18,.6,.1),sarong,.12,.75,.33,.1,0,.1);P(F,J(new THREE.CylinderGeometry(.33,.33,.14,8),.025),sarong,0,1.33,0,.1);
+P(F,bx(.09,.3,.05),sarong,-.15,1.15,.36,.1,0,.2);P(F,bx(.08,.24,.05),sarong,-.07,1.18,.37,.1,0,-.15);
+
+// upper body leans back, off-balance
+const U=new THREE.Group();U.position.set(0,1.33,0);U.rotation.set(-.2,0,.05);F.add(U);
+const torso=P(U,cyl(.3,.25,.8,8),shirt,0,.4,0);torso.scale.set(1.15,1,.75);
+P(U,cyl(.28,.28,.08,8),shirt,0,.03,0).scale.set(1.15,1,.78);P(U,cyl(.14,.16,.06,8),shirt,0,.82,0);
+
+// head: wide-eyed, mouth open, chin up, turned toward the threat
+const H=new THREE.Group();H.position.set(0,1.1,.02);H.rotation.set(-.28,.55,.08);U.add(H);
+P(U,cyl(.09,.1,.2,6),skin,0,.9,0);
+P(H,J(new THREE.SphereGeometry(.24,8,6),.012),skin).scale.set(1,1.12,1.02);
+P(H,bx(.2,.12,.2),skin,0,-.17,.06);P(H,bx(.06,.1,.08),skin,0,-.02,.24,-.4);
+P(H,bx(.09,.04,.06),skin,-.09,.1,.21,0,0,.3);P(H,bx(.09,.04,.06),skin,.09,.1,.21,0,0,-.3);
+P(H,bx(.07,.05,.04),dark,-.085,.04,.22);P(H,bx(.07,.05,.04),dark,.085,.04,.22);
+P(H,bx(.1,.09,.05),dark,0,-.12,.215);
+P(H,bx(.04,.08,.05),skin,-.245,0,0);P(H,bx(.04,.08,.05),skin,.245,0,0);
+P(H,J(new THREE.SphereGeometry(.26,8,5,0,PI*2,0,1.5),.015),skin,0,.03,-.02,-.3);
+
+// arms: right shields face, left thrown out palm-first
+function arm(x,u,f){const g=new THREE.Group();g.position.set(x,.68,0);U.add(g);
+ P(g,cyl(.09,.075,.42,6),skin,0,-.21,0);P(g,cyl(.125,.14,.2,6),shirt,0,-.1,0);
+ const q=new THREE.Group();q.position.y=-.42;g.add(q);P(q,cyl(.07,.055,.4,6),skin,0,-.2,0);P(q,bx(.11,.12,.05),skin,0,-.46,0);
+ [-.04,-.013,.013,.04].forEach((fx,i)=>P(q,bx(.025,.1+(i%3?.015:0),.03),skin,fx*1.2,-.57,0,0,0,fx*-5));
+ g.rotation.set(...u);q.rotation.set(...f)}
+arm(.36,[-1.35,0,-.35],[-1.7,0,0]);arm(-.36,[-.6,0,-1],[-.9,0,0]);
+
+// ---------- lights, dust, UI ----------
+S.add(new THREE.HemisphereLight(0xb8a9d8,0x1a1226,.55));
+const key=new THREE.DirectionalLight(0xdfe6ff,1.05);key.position.set(-4,6,5);S.add(key);
+const rim=new THREE.PointLight(0x9b5cff,2.2,12,2);rim.position.set(2.5,2.5,-3);S.add(rim);
+const glowL=new THREE.PointLight(0xa05cff,1.4,5,2);glowL.position.set(0,.6,1.2);S.add(glowL);
+const N=70,pp=new Float32Array(N*3);for(let i=0;i<N;i++){pp.set([(rnd()-.5)*5,rnd()*4,(rnd()-.5)*5],i*3)}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+S.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0xb27dff,size:.035,transparent:true,opacity:.6,blending:THREE.AdditiveBlending,depthWrite:false})));
+let spin=true,gl=true;const bar=document.getElementById('b');
+function btn(t,fn,on){const b=document.createElement('button');b.textContent=t;if(on)b.className='on';b.onclick=()=>{b.classList.toggle('on');fn(b.classList.contains('on'))};bar.appendChild(b)}
+btn('Turntable',v=>spin=v,true);btn('Wireframe',v=>mats.forEach(m=>m.wireframe=v));btn('Crack glow',v=>gl=v,true);
+let vt=0,tr=0,mc=0;root.traverse(o=>{if(o.isMesh){mc++;vt+=o.geometry.attributes.position.count;tr+=(o.geometry.index?o.geometry.index.count:o.geometry.attributes.position.count)/3}});
+document.getElementById('st').textContent=`${Math.round(tr)} tris · ${vt} verts · ${mc} parts · 3 stone materials + 1 base`;
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
+const clk=new THREE.Clock();
+(function loop(){requestAnimationFrame(loop);const t=clk.getElapsedTime(),p=1.1+.45*Math.sin(t*1.5);
+ mats.forEach(m=>m.emissiveIntensity=gl?p:0);glowL.intensity=gl?p*1.1:0;
+ const a=pg.attributes.position;for(let i=0;i<N;i++){let y=a.getY(i)+.004;if(y>4)y=0;a.setY(i,y)}a.needsUpdate=true;
+ if(spin)root.rotation.y+=.004;OC.update();R.render(S,C)})();
+</script></body></html>

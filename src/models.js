@@ -1,3 +1,4 @@
+import {magicWand} from "./magic/assets.js";
 import * as THREE from "three";
 import { makeButoIjo } from "./coast-models.js";
 import { FOLKLORE_IDS, makeFolkloreGhost } from "./folklore-models.js";
@@ -161,6 +162,7 @@ export function glow(parent, color, size, x, y, z, opacity = 0.5) {
   return obj;
 }
 export function makeWeapon(id) {
+  if (id === "tongkat-sihir") return magicWand();
   if (id === "keris-mpu-gandring") return makeKerisMpuGandring();
   const g = new THREE.Group();
   cylinder(g, 0.09, 0.12, 0.65, "#544536", 0, 0.1, 0);

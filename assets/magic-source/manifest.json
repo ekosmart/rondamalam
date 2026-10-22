@@ -1,0 +1,120 @@
+{
+  "count": 19,
+  "provenance": "User supplied models and visual logic, provided 2026-10-22. Original files retained; no third-party runtime service required.",
+  "assets": [
+    {
+      "source": "candle.glb",
+      "runtime": "public/models/magic/candle.glb",
+      "use": "Lentera peron dan halaman akademi",
+      "sha256": "090d813bc91a9e2aa799b914ea82c2a78ceac519f3c3df2b14c2c7747ea66f1f"
+    },
+    {
+      "source": "carriage.glb",
+      "runtime": "public/models/magic/carriage.glb",
+      "use": "Gerbong Crimson Express",
+      "sha256": "36d34ccba8ff8e7b1254b305102515232d16e07f02f715c771843f0d9532bc1d"
+    },
+    {
+      "source": "castle.glb",
+      "runtime": "public/models/magic/castle.glb",
+      "use": "Eksterior Akademi Sihir",
+      "sha256": "4b19c13d6c024fe4ccc407d00c7affcf8f8272334742c0d932754efd145f9dd2"
+    },
+    {
+      "source": "curse_bolt.glb",
+      "runtime": "public/models/magic/curse_bolt.glb",
+      "use": "Proyektil kutukan, mantra latihan, sumber kutukan",
+      "sha256": "0ef9354b469587f0302587704f3e8db6f6bff12877f4818facdc86506a1dabd8"
+    },
+    {
+      "source": "frog.glb",
+      "runtime": "public/models/magic/frog.glb",
+      "use": "Pengganti warga terkutuk",
+      "sha256": "ac7fab5f3e713a1c155c6c837485a44860dbc5482acc7dcc3f998b2a1be7ab79"
+    },
+    {
+      "source": "owl.glb",
+      "runtime": "public/models/magic/owl.glb",
+      "use": "Burung hantu stasiun dan profesor",
+      "sha256": "c0b9b711b01c6ac9074d9daa6610a5d68628c5c6a796f0da90aac118f0861955"
+    },
+    {
+      "source": "Penyihir.glb",
+      "runtime": "public/models/magic/Penyihir.glb",
+      "use": "Musuh Penyihir Rawa",
+      "sha256": "d7ad9db62f6bb7c6a2c9aea543f7e801ad6e7af15bff6d6f9bef68f8ca09369d"
+    },
+    {
+      "source": "platform_sign.glb",
+      "runtime": "public/models/magic/platform_sign.glb",
+      "use": "Papan Peron 13",
+      "sha256": "d19ade3882546fadf4a363f903aa9c42d7ac10efcc5ec3e4a356736d899bb714"
+    },
+    {
+      "source": "potion.glb",
+      "runtime": "public/models/magic/potion.glb",
+      "use": "Ramuan penawar di desa dan akademi",
+      "sha256": "8bfc61c4463574e10dd5174d6e9463f1bf334acfabf340f5be049c7d5ea57ee9"
+    },
+    {
+      "source": "scarecrow.glb",
+      "runtime": "public/models/magic/scarecrow.glb",
+      "use": "Tiga jangkar kutukan halaman",
+      "sha256": "a8988324343e105fdbe7ef0af704e436f3ec012b30f15e89cd928f7aed971b21"
+    },
+    {
+      "source": "school_gate.glb",
+      "runtime": "public/models/magic/school_gate.glb",
+      "use": "Bingkai portal stasiun dan gerbang kembali akademi",
+      "sha256": "28960e4e1214a8c2eaf804969b45e716a0016d252b49d07a5b2f7042c8690c6f"
+    },
+    {
+      "source": "spellbook.glb",
+      "runtime": "public/models/magic/spellbook.glb",
+      "use": "Teka-teki buku di peron dan buku profesor",
+      "sha256": "9c1d2927533e7ffa5dd36c326607f5e7798e722a0ec644653b7f54484a91fa91"
+    },
+    {
+      "source": "ticket_booth.glb",
+      "runtime": "public/models/magic/ticket_booth.glb",
+      "use": "Loket Pak Jatmiko",
+      "sha256": "210e1cfb63e5b5febcaeb86afee9b5759574c4faeebe5b3598ba63b35476068a"
+    },
+    {
+      "source": "trolley.glb",
+      "runtime": "public/models/magic/trolley.glb",
+      "use": "Troli pemicu portal",
+      "sha256": "cd8bc31af8f07b139bd3f98a766e769c196744b93fef1d91d385ba3a61e0f196"
+    },
+    {
+      "source": "wand.glb",
+      "runtime": "public/models/magic/wand.glb",
+      "use": "Tongkat pinjaman dan hadiah senjata",
+      "sha256": "50d6ac0fcd9b76a555e8d9a3a849535a77aa85af1b7855fb1e17bbd8e03c09e7"
+    },
+    {
+      "source": "Arca Kutukan – Cursed Villager Statue.html",
+      "original": "assets/magic-source/Arca Kutukan – Cursed Villager Statue.html",
+      "runtime": "src/magic/statue-model.js",
+      "sha256": "64fbd3f96cf3c0d082235e77389cbfca99e8510bcea973d976ab55c35cba932d"
+    },
+    {
+      "source": "Crimson Express & Brick Portal.html",
+      "original": "assets/magic-source/Crimson Express & Brick Portal.html",
+      "runtime": "src/magic/portal-models.js",
+      "sha256": "e5b57e367cb887949572d929e517cb377652dceaf19c355fe29f2732bef4e264"
+    },
+    {
+      "source": "Hollow Rider · Low-poly wizard on a broom.html",
+      "original": "assets/magic-source/Hollow Rider · Low-poly wizard on a broom.html",
+      "runtime": "src/magic/rider-model.js",
+      "sha256": "f13281982eba0501d6ce3e3b72873e2f29b645300c4a909c5d031f5c481a8712"
+    },
+    {
+      "source": "Stasiun Tengah Malam – Haunted Station Kit.html",
+      "original": "assets/magic-source/Stasiun Tengah Malam – Haunted Station Kit.html",
+      "runtime": "src/magic/station-model.js",
+      "sha256": "2c10c08530288bc4d56a3b57167138f8d8a53258f69784288b6a775abe0d361c"
+    }
+  ]
+}

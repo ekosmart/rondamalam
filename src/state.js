@@ -1,3 +1,4 @@
+import {freshMagic,restoreMagic} from "./magic/rules.js";
 import { freshWeather, restoreWeather } from "./weather-rules.js";
 import { freshSpirit, restoreSpirit } from "./spirit-rules.js";
 import { freshCoast, restoreCoast, WORLD_BOUNDS, coastLand } from "./coast-rules.js";
@@ -17,6 +18,7 @@ export function freshState() {
     rural: { cared: [] },
     spirit: freshSpirit(),
     coast: freshCoast(),
+    magic: freshMagic(),
     frontier: freshFrontier(),
     weather: freshWeather(),
     village: { treasury: 800, damage: 0 },
@@ -111,6 +113,7 @@ export class GameState {
         weather: restoreWeather(saved.weather),
         spirit: restoreSpirit(saved.spirit),
         coast: restoreCoast(saved.coast),
+        magic: restoreMagic(saved.magic),
         rural: {
           ...base.rural,
           ...saved.rural,

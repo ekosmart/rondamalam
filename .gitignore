@@ -16,3 +16,4 @@ playwright-report/
 *.pem
 *.key
 PRD_*.pdf
+artifacts/

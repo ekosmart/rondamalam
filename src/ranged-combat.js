@@ -1,3 +1,4 @@
+import { magicSound } from "./magic/audio.js";
 import { ATTACK_RANGE } from "./combat-tuning.js";
 import * as THREE from "three";
 import { makeMissile } from "./incident-models.js";
@@ -66,11 +67,13 @@ export class RangedCombat {
       return false;
     }
     g.facing = Math.atan2(e.pos.x - g.state.data.x, e.pos.z - g.state.data.z);
-    const damage = 36 + g.state.data.upgrades.strength * 6;
-    this.launch(e, damage * (volley ? 2.4 : 1));
+    const wand = g.state.data.weapon === "tongkat-sihir";
+    const damage = (wand ? 42 : 36) + g.state.data.upgrades.strength * 6;
+    this.launch(e, damage * (volley ? 2.4 : 1), false, 0, wand ? "#cda6ff" : "#ffe299");
     g.cooldowns.attack = 0.48;
     g.swing = 0.001;
-    g.audio.play("solar");
+    if (wand) magicSound(g.audio, "spell");
+    else g.audio.play("solar");
     return true;
   }
   missiles() {

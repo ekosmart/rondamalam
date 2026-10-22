@@ -1,5 +1,9 @@
 // Shared spatial plan: roads, patrol sectors and sports routes use the same coordinates.
 export const ROADS = [
+  { x: -142.5, z: 216, w: 129, d: 6 },
+  { x: -78, z: 211.5, w: 7, d: 9 },
+  { x: -207, z: 239.5, w: 6, d: 47 },
+  { x: -196, z: 263, w: 22, d: 6 },
   { x: 20, z: 369, w: 7, d: 182 },
   { x: 64, z: 278, w: 88, d: 6 },
   { x: 39, z: 330, w: 42, d: 7 },

@@ -397,37 +397,70 @@ class Game {
     }
   }
   spawnCharacters() {
-    for (const def of GHOSTS) for (let copy = 0; copy < (def.copies ?? 3); copy++) {
-      let home = { x: def.x, z: def.z };
-      if (copy > 0) {
-        for (let attempt = 0; attempt < 80; attempt++) {
-          const a = (copy * 2.4 + attempt * 2.399), radius = Math.min(def.radius - 2, 8 + (attempt % 6) * 2);
-          const candidate = { x: def.x + Math.cos(a) * radius, z: def.z + Math.sin(a) * radius };
-          if (Math.hypot(candidate.x, candidate.z) > SAFE_RADIUS + 3 && this.world.canMove(candidate.x, candidate.z, 0.8) && this.enemies.every(e => distance(e.home, candidate) >= 6)) { home = candidate; break; }
+    for (const def of GHOSTS) {
+      const vegetation = this.world.vegetation;
+      const sites =
+        def.id === "kuntilanak"
+          ? vegetation.canopyHomes
+          : def.id === "pocong"
+            ? [...vegetation.orchardSites, ...vegetation.villageSites]
+            : [];
+      const regularCount = def.id === "kuntilanak" ? 0 : (def.copies ?? 3);
+      for (let copy = 0; copy < regularCount + sites.length; copy++) {
+        let home =
+          copy >= regularCount
+            ? sites[copy - regularCount]
+            : { x: def.x, z: def.z };
+        if (copy > 0 && copy < regularCount) {
+          for (let attempt = 0; attempt < 80; attempt++) {
+            const a = copy * 2.4 + attempt * 2.399,
+              radius = Math.min(def.radius - 2, 8 + (attempt % 6) * 2);
+            const candidate = {
+              x: def.x + Math.cos(a) * radius,
+              z: def.z + Math.sin(a) * radius,
+            };
+            if (
+              Math.hypot(candidate.x, candidate.z) > SAFE_RADIUS + 3 &&
+              this.world.canMove(candidate.x, candidate.z, 0.8) &&
+              this.enemies.every((e) => distance(e.home, candidate) >= 6)
+            ) {
+              home = candidate;
+              break;
+            }
+          }
+          if (home.x === def.x && home.z === def.z) continue;
         }
-        if (home.x === def.x && home.z === def.z) continue;
+        const model = makeGhost(def);
+        model.position.set(home.x, 0, home.z);
+        this.scene.add(model);
+        this.enemies.push({
+          def: {
+            ...def,
+            radius: home.radius ?? def.radius,
+            air: home.canopy || def.air,
+          },
+          model,
+          pos: model.position,
+          home,
+          spawnId: def.id + "-" + copy,
+          aimHeight: def.aimHeight ?? 1.5,
+          habitat:
+            copy >= regularCount
+              ? { x: home.x, z: home.z }
+              : { x: def.x, z: def.z },
+          canopy: !!home.canopy,
+          bananaSite: home.tree || null,
+          name: def.name,
+          hp: def.hp,
+          maxHp: def.hp,
+          active: false,
+          respawn: 0,
+          attackTimer: 0,
+          hit: 0,
+          wander: Math.random() * 6.28,
+          human: false,
+        });
       }
-      const model = makeGhost(def);
-      model.position.set(home.x, 0, home.z);
-      this.scene.add(model);
-      this.enemies.push({
-        def,
-        model,
-        pos: model.position,
-        home,
-        spawnId: def.id + "-" + copy,
-        aimHeight: def.aimHeight ?? 1.5,
-        habitat: { x: def.x, z: def.z },
-        name: def.name,
-        hp: def.hp,
-        maxHp: def.hp,
-        active: false,
-        respawn: 0,
-        attackTimer: 0,
-        hit: 0,
-        wander: Math.random() * 6.28,
-        human: false,
-      });
     }
     const criminals = [
       {
@@ -1750,6 +1783,12 @@ class Game {
       l = Math.hypot(dx, dz);
     if (l < 0.2) return;
     const angle = Math.atan2(dx, dz);
+    if (e.canopy && e.pos.y > 4) {
+      e.pos.x += (dx / l) * Math.min(l, speed * dt);
+      e.pos.z += (dz / l) * Math.min(l, speed * dt);
+      e.model.rotation.y = angle;
+      return;
+    }
     for (const offset of [0, 0.65, -0.65, 1.3, -1.3]) {
       const a = angle + offset,
         nx = e.pos.x + Math.sin(a) * speed * dt,
@@ -1792,15 +1831,38 @@ class Game {
       e.provoked = Math.max(0, (e.provoked || 0) - dt);
       if (this.isSafe || hd > leash + 75 || pd > 65) e.provoked = 0;
       const pursuing = e.provoked > 0;
+      // Find an open landing patch before descending through dense bamboo.
+      if (
+        e.canopy &&
+        e.pos.y < 6 &&
+        !this.world.canMove(e.pos.x, e.pos.z, 0.42)
+      ) {
+        const landing = this.world.nearestLanding(e.pos.x, e.pos.z);
+        this.steer(e, landing.x, landing.z, 3, dt);
+      }
       let moving = false;
-      if (!this.isSafe && ((this.altitude < 6 && hd < leash && pd < 25) || pursuing)) {
+      if (
+        !this.isSafe &&
+        ((this.altitude < 6 && hd < leash && pd < 25) || pursuing)
+      ) {
         if (pd > 1.8) {
           let speed = e.human ? 3.4 : e.def.kind === "child" ? 5 : 2.8;
           if (this.flashOn && !e.human && pd < 12) speed *= 0.75;
-          if (pursuing) this.incidents.navigation.move(e, d.x, d.z, Math.max(4.5, speed), dt);
+          if (pursuing && !e.canopy)
+            this.incidents.navigation.move(
+              e,
+              d.x,
+              d.z,
+              Math.max(4.5, speed),
+              dt,
+            );
           else this.steer(e, d.x, d.z, speed, dt);
           moving = true;
-        } else if (e.attackTimer <= 0 && this.altitude < 6) {
+        } else if (
+          e.attackTimer <= 0 &&
+          this.altitude < 6 &&
+          (!e.canopy || Math.abs(e.pos.y - this.altitude) < 3.2)
+        ) {
           if (e.def.pickpocket) {
             const stolen = Math.min(d.coins, 18);
             d.coins -= stolen;
@@ -1814,17 +1876,35 @@ class Game {
           } else this.hurt(e.power, e.human ? "physical" : "magic");
           e.attackTimer = e.def.pickpocket ? 10 : e.def.global ? 1.3 : 1.7;
           if (e.model.userData.folklore)
-            this.audio.ghostVoices.play(e.def.id, { distance: pd, event: "attack" });
+            this.audio.ghostVoices.play(e.def.id, {
+              distance: pd,
+              event: "attack",
+            });
           if (e.def.id === "dracula") e.hp = Math.min(e.maxHp, e.hp + 8);
         }
-        if (pursuing && !e.human && this.altitude >= 6 && Math.hypot(pd, this.altitude) < 18 && e.attackTimer <= 0) {
-          this.effects.beam(e.pos.clone().add(new THREE.Vector3(0, 1.5, 0)), new THREE.Vector3(d.x, this.altitude + 1.5, d.z), "#bb97ef");
-          this.hurt(e.power, "magic"); e.attackTimer = 2.5;
+        if (
+          pursuing &&
+          !e.human &&
+          this.altitude >= 6 &&
+          Math.hypot(pd, this.altitude) < 18 &&
+          e.attackTimer <= 0
+        ) {
+          this.effects.beam(
+            e.pos.clone().add(new THREE.Vector3(0, 1.5, 0)),
+            new THREE.Vector3(d.x, this.altitude + 1.5, d.z),
+            "#bb97ef",
+          );
+          this.hurt(e.power, "magic");
+          e.attackTimer = 2.5;
         }
       } else {
         const target = {
-          x: e.home.x + Math.sin(this.elapsed * 0.12 + e.wander) * 3,
-          z: e.home.z + Math.cos(this.elapsed * 0.12 + e.wander) * 3,
+          x:
+            e.home.x +
+            Math.sin(this.elapsed * 0.12 + e.wander) * (e.canopy ? 8 : 3),
+          z:
+            e.home.z +
+            Math.cos(this.elapsed * 0.12 + e.wander) * (e.canopy ? 7 : 3),
         };
         if (distance(e.pos, target) > 0.8) {
           this.steer(
@@ -1844,19 +1924,34 @@ class Game {
         e.model.scale.setScalar(e.hit > 0 ? 1.05 : 1);
       } else {
         const gd = e.model.userData;
-        e.pos.y = e.def.id === "pocong" ? this.world.groundHeight(e.pos.x,e.pos.z) : [
-          "boar",
-          "fox",
-          "beast",
-          "mummy",
-          "tall",
-          "antler",
-          "child",
-        ].includes(e.def.kind)
-          ? 0
-          : e.def.kind === "shroud"
-            ? Math.abs(Math.sin(this.elapsed * 3 + e.wander)) * 0.45
-            : 0.25 + Math.sin(this.elapsed * 2 + e.wander) * 0.2;
+        const canopyEngaged =
+          e.canopy && !this.isSafe && ((hd < leash && pd < 26) || pursuing);
+        const landingFloor =
+          e.canopy && !this.world.canMove(e.pos.x, e.pos.z, 0.42) ? 4.2 : 0.6;
+        e.pos.y = e.canopy
+          ? THREE.MathUtils.damp(
+              e.pos.y,
+              canopyEngaged
+                ? Math.min(18, Math.max(landingFloor, this.altitude + 0.6))
+                : 10.5 + Math.sin(this.elapsed * 0.7 + e.wander) * 1.3,
+              1.8,
+              dt,
+            )
+          : e.def.id === "pocong"
+            ? this.world.groundHeight(e.pos.x, e.pos.z)
+            : [
+                  "boar",
+                  "fox",
+                  "beast",
+                  "mummy",
+                  "tall",
+                  "antler",
+                  "child",
+                ].includes(e.def.kind)
+              ? 0
+              : e.def.kind === "shroud"
+                ? Math.abs(Math.sin(this.elapsed * 3 + e.wander)) * 0.45
+                : 0.25 + Math.sin(this.elapsed * 2 + e.wander) * 0.2;
         gd.body.rotation.z = Math.sin(this.elapsed + e.wander) * 0.025;
         gd.own.emissiveIntensity =
           e.hit > 0
@@ -1868,13 +1963,18 @@ class Game {
           e.hp / e.maxHp <= 0.25 ? "#d27967" : ELEMENTS[e.def.element],
         );
         animateFolkloreGhost(e.model, this.elapsed + e.wander, {
-          moving, attack: Math.max(0, (e.attackTimer - 1.2) / .5), hit: e.hit,
+          moving,
+          attack: Math.max(0, (e.attackTimer - 1.2) / 0.5),
+          hit: e.hit,
         });
         if (gd.folklore && pd < 30 && this.altitude < 18) {
-          const dx = e.pos.x - d.x, dz = e.pos.z - d.z;
+          const dx = e.pos.x - d.x,
+            dz = e.pos.z - d.z;
           this.audio.ghostVoices.play(e.def.id, {
             distance: pd,
-            pan: (dx * Math.cos(this.cameraYaw) - dz * Math.sin(this.cameraYaw)) / Math.max(1, pd),
+            pan:
+              (dx * Math.cos(this.cameraYaw) - dz * Math.sin(this.cameraYaw)) /
+              Math.max(1, pd),
           });
         }
       }

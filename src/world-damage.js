@@ -23,6 +23,7 @@ export class WorldDamage {
   setRuined(entry, ruined) {
     if (!!entry.ruined === ruined) return;
     entry.ruined = ruined;
+    entry.setVisualRuined?.(ruined);
     if (entry.group) { entry.group.visible = !ruined; entry.group.userData.weatherRuined = ruined; }
     for (const { geometry, start, original } of entry.damageSpans || []) {
       const attr = geometry.attributes.position;
@@ -37,6 +38,7 @@ export class WorldDamage {
   setFieldRuined(f, ruined) {
     if (!!f.ruined === ruined) return;
     f.ruined = ruined;
+    f.setVisualRuined?.(ruined);
     [f.stem, f.heads, f.leaves].forEach((m, j) => {
       const a = m.instanceMatrix.array, original = f.originalMatrices[j]; a.set(original);
       if (ruined) for (let i = 0; i < a.length; i += 16) {

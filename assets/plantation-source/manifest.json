@@ -1,0 +1,71 @@
+{
+  "provenance": "User supplied plantation models and wind shader. Binary files retained without modification.",
+  "assets": [
+    {
+      "name": "bambu_rumpun.glb",
+      "path": "public/models/plantation/bambu_rumpun.glb",
+      "sha256": "97931085bb5dc43b4d527810a2c3534431efdb1edec61c1366a8228b21637303"
+    },
+    {
+      "name": "gandum_rumpun.glb",
+      "path": "public/models/plantation/gandum_rumpun.glb",
+      "sha256": "879a206d88509d609c9dd1c55c63748adaf1e1ce91bdd1b97968440895d05afa"
+    },
+    {
+      "name": "jagung_dewasa.glb",
+      "path": "public/models/plantation/jagung_dewasa.glb",
+      "sha256": "949b21c44e63ee430fc7370489ff1ad1e0552ef7fb416ec16a542d996f6d1b83"
+    },
+    {
+      "name": "jagung_mati.glb",
+      "path": "public/models/plantation/jagung_mati.glb",
+      "sha256": "67e86c50ebfcdc525870581bf4ef1a6e1103efaf67cb966a128be1499674b5f5"
+    },
+    {
+      "name": "jerami_gulungan.glb",
+      "path": "public/models/plantation/jerami_gulungan.glb",
+      "sha256": "35d7972d687853bf744a3626519983f52cab8506fdf17a6752be47f8818afd18"
+    },
+    {
+      "name": "orang_orangan_sawah.glb",
+      "path": "public/models/plantation/orang_orangan_sawah.glb",
+      "sha256": "b058679be2f97522cd33d13d4fa1296873cb3382f5d4a11bee78175c034e7794"
+    },
+    {
+      "name": "pisang_anakan.glb",
+      "path": "public/models/plantation/pisang_anakan.glb",
+      "sha256": "d460af625fde7192c3876a08078e85ad8b9dbe7304a4b7ce97ca31aba0a412b5"
+    },
+    {
+      "name": "pisang_daun_kering.glb",
+      "path": "public/models/plantation/pisang_daun_kering.glb",
+      "sha256": "dcd3818713afb794d6479713fa562e84a54feba860594967b31d924d73f17148"
+    },
+    {
+      "name": "pisang_pohon_berbuah.glb",
+      "path": "public/models/plantation/pisang_pohon_berbuah.glb",
+      "sha256": "1589eb9dec0c38052d56a7f5204908c1dcf505a6d93aefa5197dbfb70e66cd88"
+    },
+    {
+      "name": "sawit_pelepah_tumpuk.glb",
+      "path": "public/models/plantation/sawit_pelepah_tumpuk.glb",
+      "sha256": "829d91cfbee7a62e37ed962ace15ca5a4ffbfec76db7a7b96ca5911ce1a269fa"
+    },
+    {
+      "name": "sawit_pohon.glb",
+      "path": "public/models/plantation/sawit_pohon.glb",
+      "sha256": "52e163f55e47a417c0dbb7a74b7424c667ce463f981577dc0622ae6323cc53f3"
+    },
+    {
+      "name": "sawit_tbs.glb",
+      "path": "public/models/plantation/sawit_tbs.glb",
+      "sha256": "f31f4a50abadf3bfc24b5f8b5efa00b0604c1399c297d0ad5fe64a0b3c3d41b1"
+    },
+    {
+      "name": "wind-sway.js",
+      "path": "assets/plantation-source/wind-sway.js",
+      "sha256": "067b479e1568a1b4179afb6a2e4e80a57e49343fc0666c3de8b4a37ccb4fb135",
+      "runtime": "src/plantation-wind.js"
+    }
+  ]
+}

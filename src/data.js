@@ -12,6 +12,7 @@ export const ELEMENTS = {
   Gaib: "#c4a0e7",
 };
 export const ZONES = [
+  { name: "Kebun Pisang", sub: "Satu bayangan berkafan di antara daun pisang.", x: -124, z: 122, r: 34, icon: "ghost" },
   { name: "Karang Tirta", sub: "Kampung nelayan, pelelangan, dan dermaga.", x: 20, z: 335, r: 57, icon: "home" },
   { name: "Mercusuar Karang Tirta", sub: "Cahaya penuntun menuju teluk.", x: 30, z: 440, r: 42, icon: "home" },
   { name: "Pulau Karang", sub: "Langkah raksasa terdengar dari kapal tua.", x: 190, z: 420, r: 32, icon: "ghost" },
@@ -98,10 +99,10 @@ export const ZONES = [
   },
   {
     name: "Hutan Bambu",
-    sub: "Rumpun berbisik menyebut namamu.",
-    x: -221,
-    z: -117,
-    r: 62,
+    sub: "Kuntilanak melayang di antara pucuk bambu.",
+    x: -242,
+    z: -108,
+    r: 86,
     icon: "leaf",
   },
   {
@@ -149,7 +150,7 @@ export const GHOSTS = [
     x: -114,
     z: -209,
     radius: 24,
-    story: "Tali yang belum dilepas. Janji yang belum ditepati.",
+    story: "Tali yang belum dilepas. Janji yang belum ditepati. Menghuni kebun pisang dan muncul sendirian di pohon pisang kampung.",
   },
   {
     id: "kuntilanak",
@@ -163,7 +164,7 @@ export const GHOSTS = [
     x: -213,
     z: -114,
     radius: 24,
-    story: "Tawa di sela bambu menyimpan rindu seorang ibu.",
+    story: "Tawa di sela bambu menyimpan rindu seorang ibu. Melayang di pucuk rumpun lalu turun mendekati orang yang melintas.",
   },
   {
     id: "genderuwo",

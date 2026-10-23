@@ -1,4 +1,6 @@
 import { stationClearing } from "./magic/rules.js";
+import { PlantationWorld } from "./plantation-world.js";
+import { plantationClearing } from "./plantation-data.js";
 import { WorldDamage } from "./world-damage.js";
 import { buildCoastWorld } from "./coast-world.js";
 import { WORLD_BOUNDS, coastLand } from "./coast-rules.js";
@@ -55,6 +57,7 @@ export class World {
     buildIncidentWorld(this);
     buildFrontierWorld(this);
     this.coast = buildCoastWorld(this);
+    this.vegetation = new PlantationWorld(this);
     this.buildNature();
     this.livingWater = new LivingWater(this);
     this.buildDetails();
@@ -289,7 +292,7 @@ export class World {
     pool.rotation.x = -Math.PI / 2;
   }
   tree(x, z, size = 1, palm = false) {
-    if (frontierClearing(x, z) || stationClearing(x, z)) return;
+    if (frontierClearing(x, z) || stationClearing(x, z) || plantationClearing(x, z)) return;
     if (Math.abs(x + 126) < 46 && Math.abs(z - 182) < 45) return;
     if (
       (Math.abs(x - 235) < 31 && Math.abs(z + 232) < 33) ||
@@ -719,40 +722,8 @@ export class World {
       [42, 22, 1.3],
     ])
       this.tree(x, z, s);
-    for (let i = 0; i < 35; i++)
-      this.tree(
-        -244 + (i % 6) * 14,
-        47 + Math.floor(i / 6) * 18,
-        range(0.85, 1.2),
-        true,
-      );
-    for (let i = 0; i < 35; i++) {
-      const x = range(-254, -186),
-        z = range(-171, -70);
-      if (onRoad(x, z, 4)) continue;
-      for (let j = 0; j < 4; j++) {
-        const bx = x + range(-1.5, 1.5),
-          bz = z + range(-1.5, 1.5),
-          h = range(8, 15);
-        const grove = new THREE.Group(); this.static.add(grove);
-        this.trees.push({ x: bx, z: bz, h, bamboo: true, group: grove });
-        cylinder(grove, 0.09, 0.15, h, "#768368", bx, h / 2, bz, 5);
-        for (let y = 1; y < h; y += 1.3)
-          cylinder(grove, 0.16, 0.16, 0.07, "#98a084", bx, y, bz, 5);
-        for (let k = 0; k < 3; k++) {
-          const leaf = orb(
-            grove,
-            2.3,
-            "#4d715b",
-            bx + range(-1, 1),
-            h - 2 + k,
-            bz,
-            0,
-          );
-          leaf.scale.set(1, 0.2, 0.6);
-        }
-      }
-    }
+    // Detailed palm and bamboo groves are owned by PlantationWorld so their
+    // wind shaders, instances and weather damage remain synchronized.
     // Banyan and sacred spring.
     const bx = 213,
       bz = -154;
@@ -1180,6 +1151,7 @@ export class World {
     );
   }
   update(dt, t, state, player) {
+    this.vegetation.update(dt, t, state.data.weather?.type);
     const h = state.data.time / 60,
       day = Math.max(0, Math.min(1, Math.min((h - 5) / 2, (19 - h) / 2)));
     const color = new THREE.Color("#1d353b").lerp(

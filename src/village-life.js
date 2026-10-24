@@ -5,6 +5,8 @@ import { RAID_TARGETS, RITUAL } from "./layout.js";
 import { distance, clamp } from "./state.js";
 import { makeGhost, animateHuman, orb, glow, mesh } from "./models.js";
 import { makeResident, makeBuffalo } from "./expansion-models.js";
+import { animateFolkloreGhost } from "./folklore-models.js";
+import { GHOST_ASSETS } from "./ghost-assets.js";
 
 export class VillageLife {
   constructor(game) {
@@ -24,6 +26,7 @@ export class VillageLife {
     const npc = {
       def,
       model,
+      aimHeight: GHOST_ASSETS[def.id] ? GHOST_ASSETS[def.id].height * .7 : 1.5,
       active: false,
       ambient: true,
       route,
@@ -437,7 +440,15 @@ export class VillageLife {
       e.pos.y =
         e.def.kind === "head" ? 1.8 : Math.sin(t * 2 + r.index) * 0.12 + 0.15;
       e.model.userData.own.emissiveIntensity =
-        e.hp / e.maxHp <= 0.25 ? 0.65 + Math.sin(t * 9) * 0.3 : 0.27;
+        e.hit > 0 ? 1.2 : e.hp / e.maxHp <= 0.25 ? 0.65 + Math.sin(t * 9) * 0.3 : 0.27;
+      animateFolkloreGhost(e.model, t + r.index, {
+        moving: r.route < route.length,
+        attack: Math.max(0, (e.attackTimer - 1.2) / .6), hit: e.hit,
+      });
+      if (e.model.userData.folklore) g.audio.ghostVoices.play(e.def.id, {
+        distance: Math.hypot(distance(e.pos, d), g.altitude || 0),
+        event: e.attackTimer > 1.2 ? "attack" : "idle",
+      });
       r.x = e.pos.x;
       r.z = e.pos.z;
       r.hp = e.hp;

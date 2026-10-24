@@ -7,7 +7,8 @@ import { Frontier } from "./frontier.js";
 import { Expeditions } from "./expeditions.js";
 import { SpiritRealm } from "./spirit-realm.js";
 import { Coast } from "./coast.js";
-import { animateFolkloreGhost, makeFolkloreGhost } from "./folklore-models.js";
+import { animateFolkloreGhost } from "./folklore-models.js";
+import { disposeImportedGhost, GHOST_ASSETS } from "./ghost-assets.js";
 import { WORLD_BOUNDS } from "./coast-rules.js";
 import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
@@ -347,7 +348,10 @@ class Game {
     this.bike.visible = this.state.data.riding;
   }
   updateCompanion() {
-    if (this.companionModel) this.companionModel.removeFromParent();
+    if (this.companionModel) {
+      this.companionModel.removeFromParent();
+      disposeImportedGhost(this.companionModel);
+    }
     const c = this.state.companion;
     if (!c) {
       this.companionModel = null;
@@ -443,7 +447,7 @@ class Game {
           pos: model.position,
           home,
           spawnId: def.id + "-" + copy,
-          aimHeight: def.aimHeight ?? 1.5,
+          aimHeight: def.aimHeight ?? (GHOST_ASSETS[def.id] ? GHOST_ASSETS[def.id].height * .7 : 1.5),
           habitat:
             copy >= regularCount
               ? { x: home.x, z: home.z }
@@ -1477,7 +1481,7 @@ class Game {
   }
   defeat(e, caught = false, source = "player") {
     if (e.model?.userData.folklore) {
-      const echo = makeFolkloreGhost(e.def);
+      const echo = makeGhost(e.def);
       echo.position.copy(e.pos);
       echo.rotation.copy(e.model.rotation);
       this.scene.add(echo);
@@ -2164,6 +2168,7 @@ class Game {
         echo.model.position.y += dt * (echo.caught ? 2 : 1);
         if (f === 1) {
           echo.model.removeFromParent();
+          if (disposeImportedGhost(echo.model)) continue;
           const materials = new Set();
           echo.model.traverse(m => {
             if (m.isMesh) { m.geometry.dispose(); materials.add(m.material); }

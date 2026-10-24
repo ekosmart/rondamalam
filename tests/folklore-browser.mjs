@@ -72,14 +72,14 @@ try {
       (i) => i.complete && i.naturalWidth > 0,
     ),
   );
-  await check("22 real portraits, owned glow and unowned dim", () => {
+  await check("23 real portraits, owned glow and unowned dim", () => {
     const cards = [...document.querySelectorAll(".ghost-card")];
     const owned = document.querySelector(".ghost-card.owned .ghost-portrait");
     const unowned = document.querySelector(
       ".ghost-card:not(.owned) .ghost-portrait",
     );
     return (
-      cards.length === 22 &&
+      cards.length === 23 &&
       getComputedStyle(owned).filter.includes("drop-shadow") &&
       getComputedStyle(unowned).filter.includes("brightness(0.34)")
     );

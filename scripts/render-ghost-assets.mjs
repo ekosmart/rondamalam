@@ -7,13 +7,14 @@ try {
   await page.waitForFunction(() => window.__ronda);
   await mkdir("public/portraits", { recursive: true });
   await mkdir("public/models/folklore", { recursive: true });
-  const assets = await page.evaluate(async () => {
+  const assets = await page.evaluate(async (importedOnly) => {
     const THREE = await import("/node_modules/three/build/three.module.js");
     const { GLTFExporter } =
       await import("/node_modules/three/examples/jsm/exporters/GLTFExporter.js");
     const { makeGhost } = await import("/src/models.js"),
       { GHOSTS } = await import("/src/data.js");
     const { FOLKLORE_IDS } = await import("/src/folklore-models.js");
+    const { GHOST_ASSETS } = await import("/src/ghost-assets.js");
     __ronda.ui.panel = "asset-render";
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -35,7 +36,10 @@ try {
     scene.add(rim);
     const out = [];
     for (const def of GHOSTS) {
+      if (importedOnly && !GHOST_ASSETS[def.id]) continue;
       const model = makeGhost(def);
+      await model.userData.ready;
+      if (model.userData.assetError) throw new Error(model.userData.assetError);
       scene.add(model);
       model.updateMatrixWorld(true);
       const bounds = new THREE.Box3();
@@ -86,7 +90,7 @@ try {
     }
     renderer.dispose();
     return out;
-  });
+  }, process.env.IMPORTED_ONLY === "1");
   for (const a of assets) {
     await writeFile(
       `public/portraits/${a.id}.png`,

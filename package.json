@@ -22,7 +22,8 @@
     "test:coast-layout": "node tests/coast-layout-browser.mjs",
     "test:magic": "node tests/magic-browser.mjs && node tests/magic-mobile-browser.mjs",
     "test:school": "node tests/school-interior-browser.mjs",
-    "test:plantation": "node tests/plantation-browser.mjs"
+    "test:plantation": "node tests/plantation-browser.mjs",
+    "test:ghost-assets": "node tests/ghost-assets-browser.mjs"
   },
   "engines": {
     "node": "22.x"

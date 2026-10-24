@@ -133,6 +133,12 @@ export const ZONES = [
 export const POSTS = patrolPosts(1);
 export const GHOSTS = [
   {
+    id: "wewe-gombel", name: "Wewe Gombel", region: "Jawa · Kebun tua utara kampung",
+    element: "Gaib", kind: "beast", color: "#746253", hp: 135, power: 17,
+    x: -35, z: -180, radius: 22, copies: 2, aimHeight: 2.4,
+    story: "Senandung lirih terdengar dari kebun tua di utara kampung. Sosok berambut panjang ini menampakkan diri ketika malam tiba; jangan mengikuti panggilannya menjauh dari jalan.",
+  },
+  {
     id: "buto-ijo", name: "Buto Ijo", region: "Pulau Karang · Karang Tirta",
     element: "Tanah", kind: "tall", color: "#679d31", hp: 460, power: 24,
     x: 190, z: 420, radius: 23, copies: 1, aimHeight: 4,

@@ -2,6 +2,7 @@ import {magicWand} from "./magic/assets.js";
 import * as THREE from "three";
 import { makeButoIjo } from "./coast-models.js";
 import { FOLKLORE_IDS, makeFolkloreGhost } from "./folklore-models.js";
+import { GHOST_ASSETS, makeImportedGhost } from "./ghost-assets.js";
 import { ELEMENTS } from "./data.js";
 import { makeKerisMpuGandring } from "./keris-mpu-gandring.js";
 
@@ -382,6 +383,11 @@ export function makeBicycle(id = "onthel", color = "#637e6c") {
   return g;
 }
 export function makeGhost(def, companion = false) {
+  if (GHOST_ASSETS[def.id]) return makeImportedGhost(def, companion, () => makeLegacyGhost(def, companion));
+  return makeLegacyGhost(def, companion);
+}
+
+function makeLegacyGhost(def, companion = false) {
   if (FOLKLORE_IDS.includes(def.id)) return makeFolkloreGhost(def, companion);
   if (def.id === "buto-ijo") return makeButoIjo(companion);
   const g = new THREE.Group(),

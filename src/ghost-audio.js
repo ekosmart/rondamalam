@@ -1,8 +1,140 @@
-export const GHOST_VOICES = new Set(["pocong", "kuntilanak", "genderuwo"]);
+// Designed sound cues, not recordings: every spirit has its own timbre/rhythm.
+export const IMPORTED_VOICES = {
+  tuyul: {
+    label: "Cekikikan dan gemerincing koin",
+    hz: 680,
+    end: 430,
+    pulse: 28,
+    noise: 0.08,
+    overtone: 5.7,
+    tone: 0.3,
+    duration: 1.25,
+  },
+  ngepet: {
+    label: "Dengusan babi berat",
+    hz: 95,
+    end: 56,
+    pulse: 13,
+    noise: 0.85,
+    overtone: 2,
+    tone: 0.42,
+    duration: 1.5,
+  },
+  leak: {
+    label: "Geraman topeng dan jerit",
+    hz: 170,
+    end: 480,
+    pulse: 36,
+    noise: 0.5,
+    overtone: 3.2,
+    tone: 0.38,
+    duration: 1.6,
+  },
+  keranda: {
+    label: "Derit kayu dan desir kain",
+    hz: 190,
+    end: 105,
+    pulse: 7,
+    noise: 1.1,
+    overtone: 6.3,
+    tone: 0.23,
+    duration: 1.9,
+  },
+  jelangkung: {
+    label: "Ketukan bambu berongga",
+    hz: 340,
+    end: 290,
+    pulse: 19,
+    noise: 0.23,
+    overtone: 2.7,
+    tone: 0.48,
+    duration: 1.3,
+  },
+  sundel: {
+    label: "Ratapan lirih bergetar",
+    hz: 370,
+    end: 215,
+    pulse: 4,
+    noise: 0.3,
+    overtone: 2,
+    tone: 0.4,
+    duration: 1.9,
+  },
+  "wewe-gombel": {
+    label: "Senandung rendah dan bisikan",
+    hz: 180,
+    end: 136,
+    pulse: 3,
+    noise: 0.7,
+    overtone: 3,
+    tone: 0.4,
+    duration: 2.1,
+  },
+  ular: {
+    label: "Desis ular bergetar",
+    hz: 930,
+    end: 640,
+    pulse: 16,
+    noise: 2,
+    overtone: 4.4,
+    tone: 0.15,
+    duration: 1.7,
+  },
+  begu: {
+    label: "Dengung dalam dan embusan bayangan",
+    hz: 42,
+    end: 31,
+    pulse: 5,
+    noise: 0.6,
+    overtone: 2,
+    tone: 0.48,
+    duration: 2.2,
+  },
+  kuyang: {
+    label: "Lengking tajam berdenyut",
+    hz: 760,
+    end: 1090,
+    pulse: 29,
+    noise: 0.4,
+    overtone: 2.3,
+    tone: 0.3,
+    duration: 1.4,
+  },
+  palasik: {
+    label: "Isakan pendek dan tarikan napas",
+    hz: 460,
+    end: 280,
+    pulse: 11,
+    noise: 0.95,
+    overtone: 3,
+    tone: 0.35,
+    duration: 1.55,
+  },
+  parakang: {
+    label: "Geraman parau tersendat",
+    hz: 115,
+    end: 71,
+    pulse: 42,
+    noise: 0.8,
+    overtone: 4,
+    tone: 0.4,
+    duration: 1.65,
+  },
+};
+export const GHOST_VOICES = new Set([
+  "pocong",
+  "kuntilanak",
+  "genderuwo",
+  ...Object.keys(IMPORTED_VOICES),
+]);
 // Original synthesized effects, no remote audio service or microphone required.
 export function synthesizeGhostVoice(id, sampleRate = 22050, event = "idle") {
   if (!GHOST_VOICES.has(id)) return new Float32Array(0);
-  const duration = event === "capture" ? 0.65 : id === "genderuwo" ? 1.65 : 1.4;
+  const voice = IMPORTED_VOICES[id];
+  const duration =
+    event === "capture"
+      ? 0.65
+      : (voice?.duration ?? (id === "genderuwo" ? 1.65 : 1.4));
   const data = new Float32Array(Math.ceil(duration * sampleRate));
   let phase = 0,
     seed = 701 + id.length * 71,
@@ -16,7 +148,25 @@ export function synthesizeGhostVoice(id, sampleRate = 22050, event = "idle") {
     const envelope = Math.min(1, t / 0.045) * Math.pow(1 - u, 1.3);
     const rise = event === "capture" ? 1 + u * 2 : event === "attack" ? 1.2 : 1;
     let sample;
-    if (id === "kuntilanak") {
+    if (voice) {
+      const freq =
+        (voice.hz +
+          (voice.end - voice.hz) * u +
+          Math.sin(t * 23) * voice.hz * 0.035) *
+        rise;
+      phase += (Math.PI * 2 * freq) / sampleRate;
+      const pulse =
+        0.4 + 0.6 * Math.pow(Math.max(0, Math.sin(t * voice.pulse)), 2);
+      const knock =
+        id === "jelangkung" ? 1.8 * Math.exp(-((t * 3.1) % 1) * 6) : 1;
+      const hiss = id === "ular" ? white * 0.2 : noise;
+      sample =
+        (Math.sin(phase) * voice.tone +
+          Math.sin(phase * voice.overtone) * 0.12 +
+          hiss * voice.noise) *
+        pulse *
+        knock;
+    } else if (id === "kuntilanak") {
       const freq = (510 - 190 * u + 23 * Math.sin(t * 35)) * rise;
       phase += (Math.PI * 2 * freq) / sampleRate;
       const laugh = Math.pow(Math.max(0, Math.sin(t * 24)), 1.5);

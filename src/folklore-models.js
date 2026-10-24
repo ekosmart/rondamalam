@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { animateImportedGhost } from "./ghost-assets.js";
 import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 
 export const FOLKLORE_IDS = ["pocong", "kuntilanak", "genderuwo"];
@@ -308,6 +309,7 @@ export function animateFolkloreGhost(
   { moving = false, attack = 0, hit = 0 } = {},
 ) {
   const r = model.userData;
+  if (r.importedGhost) return animateImportedGhost(model, t, { moving, attack, hit });
   if (!r.folklore) return;
   const pace = t * (r.folklore === "genderuwo" ? 5 : 3),
     strike = Math.sin(Math.min(1, attack) * Math.PI);

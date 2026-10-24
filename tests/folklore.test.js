@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { Box3, Vector3 } from "three";
 import { GHOSTS } from "../src/data.js";
 import {
@@ -8,7 +9,28 @@ import {
   makeFolkloreGhost,
   animateFolkloreGhost,
 } from "../src/folklore-models.js";
-import { synthesizeGhostVoice } from "../src/ghost-audio.js";
+import { synthesizeGhostVoice, GHOST_VOICES } from "../src/ghost-audio.js";
+import { GHOST_ASSETS } from "../src/ghost-assets.js";
+
+test("supplied ghost binaries retain their source checksums and have roster entries", () => {
+  const manifest = JSON.parse(
+    readFileSync(
+      new URL("../assets/source/ghosts/manifest.json", import.meta.url),
+    ),
+  );
+  for (const [id, cfg] of Object.entries(GHOST_ASSETS)) {
+    assert.equal(GHOSTS.filter((g) => g.id === id).length, 1);
+    const glb = readFileSync(
+      new URL(`../public/models/ghosts/${cfg.file}.glb`, import.meta.url),
+    );
+    assert.equal(glb.subarray(0, 4).toString(), "glTF");
+    assert.equal(glb.readUInt32LE(8), glb.length);
+    assert.equal(
+      createHash("sha256").update(glb).digest("hex"),
+      manifest[`${cfg.file}.glb`],
+    );
+  }
+});
 
 test("folklore silhouettes stay low poly and animate without moving world position", () => {
   const sizes = {};
@@ -59,7 +81,7 @@ test("all almanac portraits and three portable models are valid binary assets", 
 });
 test("synthesized voices are distinct, finite, audible, bounded and decay to silence", () => {
   const signatures = new Set();
-  for (const id of FOLKLORE_IDS)
+  for (const id of GHOST_VOICES)
     for (const event of ["idle", "attack", "capture"]) {
       const samples = synthesizeGhostVoice(id, 22050, event);
       assert.ok(samples.length >= 14332);
@@ -69,10 +91,10 @@ test("synthesized voices are distinct, finite, audible, bounded and decay to sil
       const rms = Math.sqrt(
         samples.reduce((sum, x) => sum + x * x, 0) / samples.length,
       );
-      assert.ok(rms > 0.025 && rms < 0.5);
+      assert.ok(rms > 0.025 && rms < 0.5, `${id}:${event} RMS ${rms}`);
       assert.ok(Math.abs(samples.at(-1)) < 0.001);
       signatures.add(samples.slice(1000, 1010).join(","));
     }
-  assert.equal(signatures.size, 9);
+  assert.equal(signatures.size, GHOST_VOICES.size * 3);
   assert.equal(synthesizeGhostVoice("unknown").length, 0);
 });

@@ -32,3 +32,9 @@ export function scaleEnemy(enemy, level) {
 }
 export const fallDamage = (height) =>
   Math.min(280, Math.max(0, height - 2) * 8);
+
+// Leave spirits inside the capture window, even after a powerful awakened hit.
+export function companionDamage(enemy, amount) {
+  if (!enemy.active || enemy.hp <= 0 || !(enemy.maxHp > 0) || enemy.hp / enemy.maxHp <= .25) return 0;
+  return Math.min(Math.max(0, amount), Math.max(0, enemy.hp - enemy.maxHp * .24));
+}

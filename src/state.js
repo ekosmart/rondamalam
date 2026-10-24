@@ -1,4 +1,5 @@
 import {freshMagic,restoreMagic} from "./magic/rules.js";
+import {freshVehicles,restoreVehicles} from "./vehicle-rules.js";
 import { freshWeather, restoreWeather } from "./weather-rules.js";
 import { freshSpirit, restoreSpirit } from "./spirit-rules.js";
 import { freshCoast, restoreCoast, WORLD_BOUNDS, coastLand } from "./coast-rules.js";
@@ -13,6 +14,7 @@ export const captureChance = (hp, maxHp) =>
 export function freshState() {
   return {
     version: 1,
+    vehicles: freshVehicles(),
     patrolVersion: 2,
     incidents: freshIncidents(),
     rural: { cared: [] },
@@ -114,6 +116,7 @@ export class GameState {
         spirit: restoreSpirit(saved.spirit),
         coast: restoreCoast(saved.coast),
         magic: restoreMagic(saved.magic),
+        vehicles: restoreVehicles(saved.vehicles),
         rural: {
           ...base.rural,
           ...saved.rural,

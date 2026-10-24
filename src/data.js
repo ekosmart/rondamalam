@@ -1,4 +1,5 @@
 import { FRONTIER_NPCS, FRONTIER_QUESTS, CROPS } from "./frontier-data.js";
+import { VEHICLE_MOUNTS } from "./vehicle-data.js";
 import { patrolPosts, POST_POOL } from "./layout.js";
 export { patrolPosts, POST_POOL };
 export const WORLD_SIZE = 580;
@@ -517,6 +518,7 @@ export const MOUNTS = [
   },
 ];
 MOUNTS.push(
+  ...VEHICLE_MOUNTS,
   {id:"horse",name:"Kuda Peternakan",speed:28,cost:360,color:"#916747",desc:"Kuda Pak Mulyono untuk perjalanan darat. B untuk naik atau turun."},
   {id:"tractor",name:"Traktor Mulyono",speed:19,cost:620,color:"#b75538",desc:"Traktor diesel untuk menjelajah jalan desa. B untuk mengemudi atau turun; tidak dapat terbang."},
 );

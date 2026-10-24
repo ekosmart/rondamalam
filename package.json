@@ -25,7 +25,9 @@
     "test:plantation": "node tests/plantation-browser.mjs",
     "test:ghost-assets": "node tests/ghost-assets-browser.mjs",
     "test:rigged-ghosts": "node tests/rigged-ghosts-browser.mjs",
-    "test:farm-kopdes": "node tests/farm-kopdes-browser.mjs"
+    "test:companion": "node tests/companion-browser.mjs",
+    "test:farm-kopdes": "node tests/farm-kopdes-browser.mjs",
+    "test:vehicles": "node tests/vehicles-browser.mjs"
   },
   "engines": {
     "node": "22.x"

@@ -1,5 +1,9 @@
 import { MagicEvent } from "./magic/event.js";
 import { Kopdes } from "./kopdes.js";
+import { Companion } from "./companion.js";
+import { VehicleActivities } from "./vehicle-activities.js";
+import { VEHICLE_ASSETS, vehicleSeatWorld, disposeVehicleMount } from "./vehicle-assets.js";
+import { vehicleCanMove, vehicleWater } from "./vehicle-rules.js";
 import { LaserEffects } from "./laser-effects.js";
 import "./joystick.css";
 import { VillageWeather } from "./weather.js";
@@ -16,7 +20,7 @@ import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
 import { RuralLife } from "./rural-life.js";
 import { TractorBeam } from "./tractor-beam.js";
-import { scaleEnemy, effectiveDamage } from "./combat-rules.js";
+import { scaleEnemy, effectiveDamage, companionDamage } from "./combat-rules.js";
 import "./style.css";
 import "./mobile.css";
 import * as THREE from "three";
@@ -290,6 +294,7 @@ class Game {
     this.coast = new Coast(this);
     this.magic = new MagicEvent(this);
     this.kopdes = new Kopdes(this);
+    this.vehicles = new VehicleActivities(this);
     this.enemies.forEach((e) => scaleEnemy(e, this.state.data.level));
     this.bindControls();
     this.applyQuality();
@@ -317,7 +322,7 @@ class Game {
     const d = this.state.data;
     return (
       d.riding &&
-      (["naga", "ufo", "sembrani", "sapu"].includes(d.mount) ||
+      (["naga", "ufo", "sembrani", "sapu", "naga-sulong", "kereta-santa"].includes(d.mount) ||
         (d.mount === "mecha" &&
           d.incidents.tech.mechaFlight &&
           this.mechaAirborne))
@@ -339,9 +344,15 @@ class Game {
     h.add(makeWeapon(this.state.data.weapon));
   }
   equipMount() {
+    disposeVehicleMount(this.bike);
     if (this.bike) this.bike.removeFromParent();
     const m = MOUNTS.find((m) => m.id === this.state.data.mount) || MOUNTS[0];
     if (!this.isFlying && this.altitude > 0) this.land();
+    const d = this.state.data;
+    if (d.riding && !this.isFlying && !vehicleCanMove(this.world,m.id,d.x,d.z)) {
+      this.land();
+      if (m.id === 'getek-bambu') d.riding = false;
+    }
     this.bike = makeMount(m, {
       ...this.state.data.incidents.tech,
       spiritAwakened: this.state.data.spirit.sparks.length === 3,
@@ -351,6 +362,7 @@ class Game {
     this.bike.visible = this.state.data.riding;
   }
   updateCompanion() {
+    this.companionAI = null;
     if (this.companionModel) {
       this.companionModel.removeFromParent();
       disposeImportedGhost(this.companionModel);
@@ -363,7 +375,7 @@ class Game {
     const def = GHOSTS.find((g) => g.id === c.id);
     this.companionModel = makeGhost(def, true);
     this.companionModel.visible = !this.sports?.active;
-    this.companionModel.scale.setScalar(c.awakened ? 0.8 : 0.55);
+    this.companionModel.scale.setScalar(1);
     this.companionModel.position.set(
       this.state.data.x + 2,
       0,
@@ -402,6 +414,7 @@ class Game {
       }
       this.companionModel.userData.crown = crown;
     }
+    this.companionAI = new Companion(this, this.companionModel, def);
   }
   spawnCharacters() {
     for (const def of GHOSTS) {
@@ -691,6 +704,7 @@ class Game {
   action(action, args = {}) {
     if (this.pwa?.action(action)) return;
     if (this.started && this.kopdes?.action(action,args)) return;
+    if (this.started && this.vehicles?.action(action,args)) return;
     if (this.started && this.magic?.action(action, args)) return;
     if (this.started && this.spirit?.action(action, args)) return;
     if (this.started && this.coast?.action(action, args)) return;
@@ -843,6 +857,8 @@ class Game {
         this.flashOn = !this.flashOn;
         break;
       case "mount":
+        if (!d.riding && d.mount === "getek-bambu" && !this.vehicles.launchGetek()) break;
+        if (d.riding && VEHICLE_ASSETS[d.mount] && !this.world.canMove(d.x,d.z)) this.land();
         if (d.riding && this.altitude > 0) this.land();
         this.mechaAirborne = false;
         d.riding = !d.riding;
@@ -859,7 +875,7 @@ class Game {
                       : " · Kebal sihir. Klik musuh lalu Spasi untuk plasma."
                     : d.mount === "ufo"
                       ? " · T/C ketinggian · Spasi energi · U sinar pengangkat (upgrade)."
-                      : d.mount === "sembrani"
+                      : ["sembrani", "naga-sulong", "kereta-santa"].includes(d.mount)
                         ? " · T naik, C turun, B mendarat."
                         : ".")
             : "Turun dari tunggangan.",
@@ -922,7 +938,7 @@ class Game {
           this.updateCompanion();
           refresh();
           this.ui.toast(
-            "Pendamping akan ikut bertarung. Tekan G untuk memanggil skill.",
+            "Klik musuh: pendamping maju menyerang dan berhenti pada HP ≤25%. G untuk skill.",
             "success",
           );
         }
@@ -1089,6 +1105,7 @@ class Game {
     if (!it) return;
     if (
       this.magic?.interact(it) ||
+      this.vehicles?.interact(it) ||
       this.coast.interact(it) ||
       this.spirit.interact(it) ||
       this.weather.interact(it) ||
@@ -1220,6 +1237,7 @@ class Game {
         label: "Ritual Mustika Bumi · 6 sari gaib",
       });
     candidates.push(
+      ...(this.vehicles?.interactions() || []),
       ...(this.magic?.interactions() || []),
       ...(this.coast?.interactions() || []),
       ...(this.spirit?.interactions() || []),
@@ -1263,7 +1281,7 @@ class Game {
     const d = this.state.data;
     if (d.weapon === "tongkat-sihir") { this.ranged.shoot(); return; }
     if (d.riding) {
-      if (this.altitude > 0) this.land();
+      if (this.altitude > 0 || (VEHICLE_ASSETS[d.mount] && !this.world.canMove(d.x,d.z))) this.land();
       d.riding = false;
       this.bike.visible = false;
     }
@@ -1362,6 +1380,10 @@ class Game {
       this.ui.toast("Tidak ada musuh dalam jangkauan pendamping.");
       return;
     }
+    if (!enemy.active || enemy.hp / enemy.maxHp <= .25) {
+      this.ui.toast("Pendamping menahan serangan. Musuh sudah siap ditangkap.");
+      return;
+    }
     const ghost = GHOSTS.find((g) => g.id === own.id),
       w = this.state.weapon;
     this.cooldowns.companion = 12;
@@ -1453,6 +1475,10 @@ class Game {
   }
   damageEnemy(e, amount, source = "player", type = "arcane") {
     if (!e.active || e.hp <= 0) return;
+    if (source === "companion") {
+      amount = companionDamage(e, amount);
+      if (amount <= 0) return;
+    }
     if (e.witch) { this.magic.damage(e, amount); return; }
     if (amount > 0 && ["player", "missile", "tractor", "companion"].includes(source)) {
       e.provoked = 24;
@@ -1643,9 +1669,10 @@ class Game {
         d.x = clamp(nx, WORLD_BOUNDS.minX + 2, WORLD_BOUNDS.maxX - 2);
         d.z = clamp(nz, WORLD_BOUNDS.minZ + 2, WORLD_BOUNDS.maxZ - 2);
       } else {
-        const radius = d.riding && d.mount === "tractor" ? 1.35 : d.riding && d.mount === "horse" ? .75 : .55;
-        if (this.world.canMove(nx, d.z, radius)) d.x = nx;
-        if (this.world.canMove(d.x, nz, radius)) d.z = nz;
+        const radius = d.riding && VEHICLE_ASSETS[d.mount] ? (this.bike.userData.collisionRadius || .8) : d.riding && d.mount === "tractor" ? 1.35 : d.riding && d.mount === "horse" ? .75 : .55;
+        const clear = (x,z) => d.riding && VEHICLE_ASSETS[d.mount] ? vehicleCanMove(this.world,d.mount,x,z,radius) : this.world.canMove(x,z,radius);
+        if (clear(nx,d.z)) d.x = nx;
+        if (clear(d.x,nz)) d.z = nz;
       }
       this.footTimer -= dt;
       if (this.footTimer < 0) {
@@ -1672,6 +1699,7 @@ class Game {
     } else this.altitude = 0;
     const groundY = this.isFlying ? 0 : this.world.groundHeight(d.x, d.z);
     this.audio.farm.motor(d.riding && d.mount === "tractor", moving);
+    this.audio.vehicle.update(d.riding ? d.mount : null,moving);
     if (d.riding && d.mount === "horse") this.audio.farm.play("horse",0);
     this.player.visible = !(d.riding && ["mecha", "ufo"].includes(d.mount));
     this.player.position.set(
@@ -1704,6 +1732,7 @@ class Game {
       if (this.swing >= 1) this.swing = 0;
     }
     animateHuman(this.player, this.elapsed, moving, d.riding, this.swing);
+    this.player.userData.holder.visible = !(d.riding && VEHICLE_ASSETS[d.mount]) || this.swing > 0;
     if (d.riding && d.mount === "naga")
       this.player.userData.legs.forEach((leg) => (leg.rotation.x = -1.05));
     this.player.userData.legs.forEach((leg, i) => {
@@ -1721,33 +1750,20 @@ class Game {
     });
     this.bike.rotation.y = this.player.rotation.y;
     this.bike.visible = d.riding;
+    if (d.riding && VEHICLE_ASSETS[d.mount]) {
+      if (vehicleWater(d.x,d.z) && ["getek-bambu","buaya-putih"].includes(d.mount)) this.bike.position.y=.14+Math.sin(this.elapsed*1.5)*.035;
+      const seat=vehicleSeatWorld(this.bike);
+      if (seat) this.player.position.copy(seat);
+      if (VEHICLE_ASSETS[d.mount].standing) {
+        this.player.userData.legs.forEach(leg=>{leg.rotation.x=0;leg.rotation.z=0;});
+        this.player.userData.arms.forEach(arm=>{arm.rotation.x=-.65;});
+      }
+      else this.player.userData.legs.forEach((leg,i)=>{leg.rotation.x=-1.4;leg.rotation.z=['naga-sulong','buaya-putih'].includes(d.mount)?(i?1:-1)*.3:0;});
+    }
     if (d.riding && moving)
       this.bike.userData.wheels.forEach(
         (w) => (w.rotation.z -= dt * speed * 1.5),
       );
-    if (this.companionModel && !this.sports?.active) {
-      const target = new THREE.Vector3(
-        d.x + Math.cos(this.facing) * 2.3,
-        0,
-        d.z - Math.sin(this.facing) * 2.3,
-      );
-      this.companionModel.position.lerp(target, 1 - Math.exp(-dt * 4));
-      this.companionModel.position.y =
-        this.altitude + groundY + 0.65 + Math.sin(this.elapsed * 2.4) * 0.15;
-      this.companionModel.rotation.y = this.facing;
-      this.companionModel.userData.body.rotation.z =
-        Math.sin(this.elapsed * 1.3) * 0.04;
-      animateFolkloreGhost(this.companionModel, this.elapsed, { moving });
-      if (this.state.companion?.awakened && Math.random() < dt * 20)
-        this.effects.burst(
-          this.companionModel.position.x,
-          1.2,
-          this.companionModel.position.z,
-          "#d4e4ad",
-          1,
-          1,
-        );
-    }
     if (
       !this.sports?.active &&
       this.waypoint &&
@@ -2041,7 +2057,7 @@ class Game {
     }
     const mountDistance =
       this.state.data.riding &&
-      ["naga", "mecha", "ufo", "sembrani"].includes(d.mount)
+      ["naga", "mecha", "ufo", "sembrani", "naga-sulong", "kereta-santa"].includes(d.mount)
         ? Math.max(30, this.cameraDistance)
         : this.cameraDistance;
     const focus = this.altitude + (this.isFlying || this.coast?.boating ? 0 : this.world.groundHeight(d.x, d.z)) + (d.riding && d.mount === "mecha" ? 3 : 1.4);
@@ -2171,8 +2187,9 @@ class Game {
   frame(t) {
     const dt = Math.min((t - this.lastTime) / 1000, 0.05);
     this.lastTime = t;
-    if (document.hidden) return;
+    if (document.hidden) { this.audio.vehicle.stop(); return; }
     this.elapsed += dt;
+    if (!this.started || this.ui.panel || this.deathTimer > 0 || this.kopdes?.active || this.magic?.active || this.spirit?.active || this.expeditions?.active || this.sports?.active || this.coast?.boating) this.audio.vehicle.stop();
     if (this.kopdes?.active) { this.kopdes.frame(dt,this.elapsed); return; }
     if (this.magic?.active || this.spirit?.active || this.expeditions?.active) this.audio.farm.stop();
     if (this.magic?.active) { this.magic.frame(dt, this.elapsed); return; }
@@ -2248,8 +2265,10 @@ class Game {
         this.spirit.updateVillage(dt, this.elapsed);
         this.coast.update(dt, this.elapsed);
         this.magic.update(dt, this.elapsed);
+        this.vehicles.update(dt, this.elapsed);
         this.ranged.update(dt);
         this.updateTarget();
+        this.companionAI?.update(dt);
         this.mountCombat.update(dt);
         this.updateProjectiles(dt);
         this.findInteraction();

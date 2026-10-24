@@ -1,4 +1,5 @@
 import { stationClearing } from "./magic/rules.js";
+import { spiritLandingClearing } from "./spirit-rules.js";
 import { PlantationWorld } from "./plantation-world.js";
 import { plantationClearing } from "./plantation-data.js";
 import { WorldDamage } from "./world-damage.js";
@@ -292,6 +293,7 @@ export class World {
     pool.rotation.x = -Math.PI / 2;
   }
   tree(x, z, size = 1, palm = false) {
+    if (spiritLandingClearing(x, z, 5 * size)) return;
     if (frontierClearing(x, z) || stationClearing(x, z) || plantationClearing(x, z)) return;
     if (Math.abs(x + 126) < 46 && Math.abs(z - 182) < 45) return;
     if (

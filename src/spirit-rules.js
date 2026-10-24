@@ -4,6 +4,12 @@ export const SPARKS = [
   { id: "angin", name: "Napas Angin", x: 119, z: 249 },
   { id: "ombak", name: "Suara Ombak", x: 128, z: 269 },
 ];
+// Include canopy extent plus the flight safety margin and interaction radius.
+// Trees outside the crystal pedestal can otherwise still force mounts upward.
+export function spiritLandingClearing(x, z, canopy = 0) {
+  return [...SPARKS, SPIRIT_GATE, { x: SPIRIT_GATE.x - 7, z: SPIRIT_GATE.z - 4 }]
+    .some(p => Math.abs(x - p.x) < canopy + 10 && Math.abs(z - p.z) < canopy + 10);
+}
 export const RELICS = [
   { id: "teratai", name: "Cawan Teratai", x: -22, z: 12 },
   { id: "cermin", name: "Cermin Ingatan", x: 22, z: 0 },

@@ -189,7 +189,7 @@ export const SHOP_ITEMS = [
     buy: 20,
     sell: 8,
     base: true,
-    desc: "Bahan crafting di pos ronda.",
+    desc: "Bahan racikan di Kopdes.",
   },
   {
     id: "glass",

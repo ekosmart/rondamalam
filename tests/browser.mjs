@@ -113,6 +113,7 @@ try {
   await page.evaluate(() => {
     const g = __ronda;
     g.state.data.weapon = "kentongan";
+    g.state.data.night = 2;
     g.equipWeapon();
     const e = g.enemies.find((e) => e.def.id === "pocong");
     e.pos.set(-114, 0, -209);

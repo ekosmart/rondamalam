@@ -1,0 +1,61 @@
+.inside-kopdes
+  #hud
+  > :not(#kopdes-hud):not(.top-actions):not(.mobile-pad):not(#toast) {
+  display: none !important;
+}
+#kopdes-hud {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 94vw;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #203b30ed;
+  border: 1px solid #d6c18b77;
+  border-radius: 8px;
+  pointer-events: auto;
+  color: #f1e8c9;
+}
+#kopdes-hud[hidden] {
+  display: none;
+}
+#kopdes-hud strong,
+#kopdes-hud small {
+  display: block;
+  white-space: nowrap;
+}
+#kopdes-hud small {
+  font-size: 12px;
+  color: #c7c9af;
+  margin-top: 4px;
+}
+.inside-kopdes .mobile-pad button:not([data-action="interact"]) {
+  display: none;
+}
+.inside-kopdes #kopdes-hud .pill-button {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  #kopdes-hud {
+    top: 84px;
+    bottom: auto;
+    max-width: 94vw;
+    width: 94vw;
+    padding: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  #kopdes-hud > div {
+    flex: 1 0 100%;
+  }
+  #kopdes-hud button {
+    font-size: 12px;
+    min-height: 40px;
+  }
+  .inside-kopdes .mobile-pad {
+    bottom: 24px;
+  }
+}

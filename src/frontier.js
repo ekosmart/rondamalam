@@ -6,11 +6,9 @@ import {
   DINOSAURS,
   FISHING_SPOTS,
   CROPS,
-  SHOP_ITEMS,
   FRONTIER_NPCS,
   DINO_NEST,
 } from "./frontier-data.js";
-import { trade, itemBag } from "./frontier-rules.js";
 import {
   makeDinosaur,
   animateDinosaur,
@@ -83,7 +81,7 @@ export class Frontier {
         x: spot.x,
         z: spot.z + 3,
         day: true,
-        night: i === 0,
+        night: true,
         line:
           i === 0
             ? "Mau berburu ikan raksasa? Beli Joran Bambu di Kopdes, terima misiku, lalu tangkap 6 ikan. Aku beri 12 umpan dan Joran Pusaka Tirta sebagai hadiah. Patin raksasa, Arapaima, dan Raja Naga Sungai hanya menyambar malam hari setelah lima tiang ronda selesai. Saat banjir, seluruh desa bisa dipancing!"
@@ -198,12 +196,8 @@ export class Frontier {
     }
   }
   shop() {
-    const d = this.d;
-    frontierPanel(
-      this.g,
-      "Kopdes Merah Putih",
-      `<p class="frontier-lead">Bu Ratih · ${d.coins} koin. Beli bekal, jual panen, siapkan perjalanan.</p><div class="frontier-shop">${SHOP_ITEMS.map((i) => `<article><div><h3>${i.name}</h3><p>${i.desc}</p><small>${i.tool ? (i.id === "rod" ? (this.data.rod ? "Sudah punya" : "Belum punya") : this.data.rod >= 2 ? "Terpasang" : "Upgrade joran") : "Tas: " + (itemBag(d, i)[i.id] || 0)}</small></div><div>${i.buy ? frontierButton("frontier-buy", `Beli · ${i.buy}`, `data-id="${i.id}" ${i.tool && ((i.id === "rod" && this.data.rod) || (i.id === "rod-upgrade" && this.data.rod !== 1)) ? "disabled" : ""}`) : ""}${i.sell ? frontierButton("frontier-sell", `Jual · ${i.sell}`, `data-id="${i.id}" ${(itemBag(d, i)[i.id] || 0) < 1 ? "disabled" : ""}`) : ""}${i.sell ? frontierButton("frontier-sell", "Jual 5", `data-id="${i.id}" data-qty="5" ${(itemBag(d, i)[i.id] || 0) < 5 ? "disabled" : ""}`) : ""}</div></article>`).join("")}</div>`,
-    );
+    if (this.g.kopdes.active) this.g.kopdes.inspect();
+    else this.g.kopdes.enter();
   }
   action(action, args) {
     const g = this.g;
@@ -212,22 +206,7 @@ export class Frontier {
       return true;
     }
     if (["frontier-buy", "frontier-sell"].includes(action)) {
-      if (distance(this.d, FRONTIER_NPCS[0]) >= 7 || g.expeditions?.active)
-        return true;
-      const ok = trade(
-        this.d,
-        args.id,
-        action === "frontier-buy" ? "buy" : "sell",
-        Number(args.qty || 1),
-      );
-      g.ui.toast(
-        ok
-          ? "Transaksi selesai."
-          : "Koin, barang, atau syarat pembelian belum cukup.",
-        ok ? "success" : "error",
-      );
-      g.state.save();
-      this.shop();
+      this.g.kopdes.transact(action,args);
       return true;
     }
     if (action === "fish-reel") {
@@ -310,7 +289,7 @@ export class Frontier {
       if (dist < range)
         out.push({ type, obj: p, label, dist: dist + priority });
     };
-    add("frontier-shop", FRONTIER_NPCS[0], "Kopdes · Jual / beli", 5, -2);
+    add("frontier-shop", FRONTIER_NPCS[0], "Masuk Kopdes · Pajangan & jual beli", 5, -2);
     add(
       "home-entry",
       { x: 15, z: -2 },
@@ -746,8 +725,9 @@ export class Frontier {
         );
     }
     for (const f of this.fishers) {
+      f.rod.visible = !f.n.kappaCaptive && !f.n.incidentUnavailable && !f.n.witchCursed;
       f.line.visible = f.bobber.visible =
-        f.n.active && !f.n.incidentUnavailable;
+        f.n.active && !f.n.kappaCaptive && !f.n.incidentUnavailable;
       if (!f.line.visible) continue;
       f.bobber.position.y =
         (g.weather?.waterY || 0.35) + Math.sin(t * 2.5) * 0.05;

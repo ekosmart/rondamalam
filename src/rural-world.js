@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { box, orb, mesh, cylinder, beam, sign } from "./models.js";
 import { CHURCH, NEW_HOMES } from "./rural-data.js";
+import { makeFarmAsset } from "./farm-assets.js";
 export function buildRuralWorld(w) {
   for (const [x, z] of NEW_HOMES) {
     w.building(x, z, 10, 8, "house", ["#a4a890", "#9caa97"][Math.abs(z) % 2]);
@@ -92,6 +93,10 @@ export function buildRuralWorld(w) {
     d: 23,
   });
   const barn = w.building(-126, 194, 22, 14, "farm", "#ab9c77");
+  // Keep the async replacement out of the static batch so the old barn is
+  // actually removed when the GLB arrives, including during weather damage.
+  w.scene.add(barn);
+  makeFarmAsset("barn", barn);
   sign(barn, "PETERNAKAN PAK MULYONO", 19, 1).position.set(0, 3.4, 7.25);
   const silo = cylinder(w.static, 2, 2.1, 7, "#939e91", -143, 3.5, 196, 12);
   mesh(

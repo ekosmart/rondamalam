@@ -1,4 +1,5 @@
 import {createWitchRig} from "./magic/rider-model.js";
+import { makeFarmAsset, animateFarmAsset } from "./farm-assets.js";
 import { makeGyroBall } from "./frontier-models.js";
 import {
   makeLivestock,
@@ -19,6 +20,8 @@ import {
 } from "./models.js";
 
 export function makeMount(def, tech = {}) {
+  if (def.id === "horse") return makeLivestock("horse");
+  if (def.id === "tractor") return makeFarmAsset("tractor", makeBicycle("motor", "#b75538"));
   if (def.id === "sapu") return createWitchRig(true).group;
   if (def.id === "gyroball") return makeGyroBall();
   if (def.id === "sembrani") {
@@ -242,6 +245,7 @@ export function makeMount(def, tech = {}) {
   return g;
 }
 export function animateMount(g, id, t, moving) {
+  if (id === "horse" || id === "tractor") { animateFarmAsset(g,t,moving,id==="tractor"); return; }
   if (id === "sapu") { g.rotation.z=Math.sin(t*2)*.05; return; }
   if (id === "gyroball") {
     if (moving) g.userData.shell.rotation.x = t * 6;

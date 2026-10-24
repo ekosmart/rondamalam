@@ -1,3 +1,4 @@
+import { purchaseAtKopdes } from "./kopdes-helper.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
@@ -108,9 +109,8 @@ try {
     );
   });
   await move(74, -16);
-  await p.keyboard.press("e");
-  await p.locator("[data-action=frontier-buy][data-id=rod]").click();
-  await p.locator("[data-action=frontier-buy][data-id=bait]").click();
+  await purchaseAtKopdes(p,"item","rod");
+  await purchaseAtKopdes(p,"item","bait");
   await check(
     "Kopdes UI sells actual fishing gear and charges exact money",
     () =>

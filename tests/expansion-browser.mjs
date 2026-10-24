@@ -1,3 +1,4 @@
+import { purchaseAtKopdes } from "./kopdes-helper.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
@@ -155,6 +156,7 @@ try {
   );
   await page.locator('[data-action="accept-quest"][data-id="ward"]').click();
   await move(-120, -182, 1200);
+  await page.evaluate(() => { __ronda.state.data.night = 2; });
   const click = await page.evaluate(() => {
     const g = __ronda,
       e = g.enemies.find((e) => e.def.id === "pocong");
@@ -192,12 +194,10 @@ try {
   );
   await move(0, 12);
   await page.evaluate(() => (__ronda.state.data.coins = 2500));
-  await page.keyboard.press("KeyP");
-  await page.locator('[data-action="camp-tab"][data-tab="mounts"]').click();
-  await page.locator('[data-action="buy-mount"][data-id="naga"]').click();
-  await page.locator('[data-action="buy-mount"][data-id="mecha"]').click();
+  await purchaseAtKopdes(page,"mount","naga");
+  await purchaseAtKopdes(page,"mount","mecha");
   check(
-    "both new mounts can be purchased and collected at pos ronda",
+    "both mounts can be purchased and collected inside Kopdes",
     await page.evaluate(
       () =>
         __ronda.state.data.mounts.includes("naga") &&
@@ -205,7 +205,7 @@ try {
         __ronda.state.data.coins === 850,
     ),
   );
-  await page.locator('[data-action="buy-mount"][data-id="naga"]').click();
+  await page.evaluate(() => __ronda.action("equip-mount",{id:"naga"}));
   await page.keyboard.press("Escape");
   await move(75, -156);
   await page.keyboard.press("KeyB");

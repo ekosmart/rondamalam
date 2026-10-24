@@ -1,7 +1,12 @@
 import * as THREE from "three";
+import { FARM_ASSETS, makeFarmAsset, animateFarmAsset } from "./farm-assets.js";
 import { box, orb, beam, mesh, cylinder, glow, makeHuman } from "./models.js";
 
 export function makeLivestock(kind = "cow", infected = false, winged = false) {
+  const fallback = makeLegacyLivestock(kind, infected, winged);
+  return !infected && !winged && FARM_ASSETS[kind] ? makeFarmAsset(kind, fallback) : fallback;
+}
+function makeLegacyLivestock(kind, infected, winged) {
   const g = new THREE.Group(),
     horse = kind === "horse",
     bird = kind === "chicken",
@@ -183,6 +188,7 @@ export function makeLivestock(kind = "cow", infected = false, winged = false) {
   return g;
 }
 export function animateLivestock(g, t, moving = false, flying = false) {
+  if (g.userData.farmLoaded) { animateFarmAsset(g,t,moving); return; }
   const { legs = [], wings = [], kind } = g.userData;
   legs.forEach(
     (leg, i) =>

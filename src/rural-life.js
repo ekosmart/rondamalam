@@ -2,6 +2,7 @@ import { FARM_ANIMALS, NEW_HOMES } from "./rural-data.js";
 import { makeLivestock, animateLivestock } from "./rural-models.js";
 import { makeHuman, animateHuman, box, beam } from "./models.js";
 import { distance } from "./state.js";
+import { makeFarmAsset, animateFarmAsset } from "./farm-assets.js";
 export class RuralLife {
   constructor(game) {
     this.game = game;
@@ -63,6 +64,11 @@ export class RuralLife {
       game.scene.add(model);
       game.life.animals.push({ ...def, model, phase: i * 0.9 });
     });
+    this.tractorModel = makeFarmAsset("tractor");
+    this.tractorModel.position.set(-102,0,198);
+    this.tractorModel.rotation.y = Math.PI / 2;
+    game.scene.add(this.tractorModel);
+    game.world.colliders.push({x:-102,z:198,w:3,d:2,h:4});
   }
   restoreMorning() {
     const g = this.game,
@@ -151,7 +157,10 @@ export class RuralLife {
     g.life.animals.forEach((a) => {
       if (a.kind && !a.incidentUnavailable)
         animateLivestock(a.model, t + a.phase, true);
+      if (a.kind && !a.incidentUnavailable && a.model.visible)
+        g.audio.farm.play(a.kind, distance(a.model.position,g.state.data));
     });
+    animateFarmAsset(this.tractorModel,t,false,false);
     const dog = g.life.animals.find(
       (a) => a.kind === "dog" && !a.incidentUnavailable,
     );
@@ -160,6 +169,7 @@ export class RuralLife {
         .nearby(22, false, dog.model.position)
         .find((e) => e.incident && !e.heldByPlayer && e.pos.y < 4);
       if (e) {
+        g.audio.farm.play("dog",distance(dog.model.position,g.state.data));
         this.dogTimer = 1.7;
         dog.model.rotation.y = Math.atan2(
           e.pos.x - dog.model.position.x,

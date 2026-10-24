@@ -193,6 +193,7 @@ try {
   );
   await page.evaluate(() => {
     __ronda.state.data.time = 1200;
+    __ronda.state.data.night = 2;
     __ronda.weather.set("clear", false);
     __ronda.updateEnemies(0);
   });

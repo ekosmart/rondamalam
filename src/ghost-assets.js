@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { clone as cloneSkeleton } from "three/addons/utils/SkeletonUtils.js";
 
 // Adapted from the supplied ghost-fx.js. Heights retain the baked hovering gap.
 export const GHOST_ASSETS = {
@@ -45,6 +46,18 @@ export const GHOST_ASSETS = {
   },
   tuyul: { file: "tuyul", height: 1.8, sway: 0.05, flicker: 0.4 },
   "wewe-gombel": { file: "wewe_gombel", height: 3.7, sway: 0.03, flicker: 0.4 },
+  banaspati: { file: "banaspati", height: 2.8, flicker: 0.9 },
+  suanggi: { file: "suanggi", height: 3.1 },
+  jiangshi: { file: "jiangshi", height: 3.1 },
+  dracula: { file: "dracula", height: 3.5 },
+  wendigo: { file: "wendigo", height: 4.4 },
+  mummy: { file: "mummy", height: 3.1 },
+  yokai: { file: "kitsune", height: 2.7, flicker: 0.5 },
+  kappa: { file: "kappa", height: 2.2 },
+  skeleton: { file: "skeleton", height: 3 },
+  "slender-man": { file: "slender_man", height: 4.6 },
+  "biarawati-iblis": { file: "biarawati_iblis", height: 3.4 },
+  "suster-ngesot": { file: "suster_ngesot", height: 1.5 },
 };
 const loader = new GLTFLoader(),
   pending = new Map(),
@@ -54,8 +67,8 @@ function load(id) {
     const promise = loader
       .loadAsync(`/models/ghosts/${GHOST_ASSETS[id].file}.glb`)
       .then((gltf) => {
-        loaded.set(id, gltf.scene);
-        return gltf.scene;
+        loaded.set(id, gltf);
+        return gltf;
       });
     pending.set(id, promise);
     promise.catch(() => pending.delete(id));
@@ -68,13 +81,14 @@ function ghostMaterial(material, clock, smoke, body) {
   material.onBeforeCompile = (shader) => {
     // Emissive light must follow the GLB vertex colors, otherwise the dark
     // hair, skin and clothing become one flat silhouette in the night scene.
-    if (body) shader.fragmentShader = shader.fragmentShader.replace(
-      "#include <emissivemap_fragment>",
-      `#include <emissivemap_fragment>
+    if (body)
+      shader.fragmentShader = shader.fragmentShader.replace(
+        "#include <emissivemap_fragment>",
+        `#include <emissivemap_fragment>
        #if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)
          totalEmissiveRadiance *= vColor.rgb;
        #endif`,
-    );
+      );
     if (!smoke) return;
     shader.uniforms.ghostTime = clock;
     shader.vertexShader = shader.vertexShader
@@ -102,7 +116,7 @@ export function makeImportedGhost(def, companion, fallback) {
   const install = (template) => {
     if (root.userData.disposed) return root;
     const body = new THREE.Group(),
-      model = template.clone(true);
+      model = cloneSkeleton(template.scene);
     const eyes = [],
       materials = [],
       clock = { value: 0 };
@@ -126,12 +140,26 @@ export function makeImportedGhost(def, companion, fallback) {
         ? mesh.material.map(clone)
         : clone(mesh.material);
       mesh.castShadow = mesh.receiveShadow = true;
+      mesh.frustumCulled = false; // Animated limbs can extend beyond bind-pose bounds.
     });
     const bounds = new THREE.Box3().setFromObject(model);
     const scale = cfg.height / Math.max(0.1, bounds.max.y);
     model.scale.setScalar(scale);
     model.position.y = Math.max(0, -bounds.min.y * scale);
     body.add(model);
+    const mixer = new THREE.AnimationMixer(model);
+    const actions = Object.fromEntries(
+      template.animations.map((clip) => [
+        clip.name.toLowerCase(),
+        mixer.clipAction(clip),
+      ]),
+    );
+    for (const name of ["attack", "death"])
+      if (actions[name]) {
+        actions[name].setLoop(THREE.LoopOnce, 1);
+        actions[name].clampWhenFinished = true;
+      }
+    actions.idle?.play();
     // The fallback uses shared materials: remove it without disposing them.
     for (const child of fallbackChildren) {
       root.remove(child);
@@ -151,6 +179,11 @@ export function makeImportedGhost(def, companion, fallback) {
       folklore: def.id,
       baseScale: 1,
       loaded: true,
+      mixer,
+      actions,
+      animation: "idle",
+      rigModel: model,
+      deathDuration: actions.death?.getClip().duration || 0.65,
     });
     return root;
   };
@@ -169,23 +202,49 @@ export function makeImportedGhost(def, companion, fallback) {
 export function animateImportedGhost(
   model,
   t,
-  { moving = false, attack = 0, hit = 0 } = {},
+  { moving = false, attack = 0, hit = 0, dead = false, dt } = {},
 ) {
   const r = model.userData,
     cfg = GHOST_ASSETS[r.importedGhost];
   if (!cfg) return;
-  const strike = Math.sin(Math.min(1, Math.max(0, attack)) * Math.PI);
-  const groundStep =
-    !cfg.bob && moving
-      ? Math.abs(Math.sin(t * (r.importedGhost === "tuyul" ? 9 : 6))) * 0.07
-      : 0;
-  r.body.position.y = (cfg.bob || 0) * Math.sin(t * 1.3) + groundStep;
-  r.body.rotation.z = (cfg.roll ?? cfg.sway) * Math.sin(t * 0.9);
-  r.body.rotation.x =
-    hit > 0 ? -0.13 : cfg.sway * 0.5 * Math.sin(t * 0.7) + strike * 0.18;
-  r.body.rotation.y = r.importedGhost === "ular" ? Math.sin(t * 2.8) * 0.1 : 0;
+  if (r.mixer && r.actions.idle) {
+    const delta = Math.max(
+      0,
+      Math.min(
+        0.1,
+        dt ?? (r.lastAnimationTime == null ? 1 / 60 : t - r.lastAnimationTime),
+      ),
+    );
+    r.lastAnimationTime = t;
+    let next = dead ? "death" : moving ? "walk" : "idle";
+    if (!dead && attack > 0 && !(r.previousAttack > 0)) next = "attack";
+    else if (!dead && r.animation === "attack" && r.actions.attack.isRunning())
+      next = "attack";
+    if (r.animation === "death") next = "death";
+    r.previousAttack = attack;
+    if (next !== r.animation && r.actions[next]) {
+      r.actions[r.animation]?.fadeOut(0.12);
+      r.actions[next].reset().setEffectiveWeight(1).fadeIn(0.12).play();
+      r.animation = next;
+    }
+    r.mixer.update(delta);
+    r.body.position.set(0, 0, 0);
+    r.body.rotation.set(0, 0, 0);
+  } else {
+    const strike = Math.sin(Math.min(1, Math.max(0, attack)) * Math.PI);
+    const groundStep =
+      !cfg.bob && moving
+        ? Math.abs(Math.sin(t * (r.importedGhost === "tuyul" ? 9 : 6))) * 0.07
+        : 0;
+    r.body.position.y = (cfg.bob || 0) * Math.sin(t * 1.3) + groundStep;
+    r.body.rotation.z = (cfg.roll ?? cfg.sway) * Math.sin(t * 0.9);
+    r.body.rotation.x =
+      hit > 0 ? -0.13 : cfg.sway * 0.5 * Math.sin(t * 0.7) + strike * 0.18;
+    r.body.rotation.y =
+      r.importedGhost === "ular" ? Math.sin(t * 2.8) * 0.1 : 0;
+  }
   r.clock.value = t;
-  if (r.own.emissiveIntensity <= .28) r.own.emissive.set("#ddd8ce");
+  if (r.own.emissiveIntensity <= 0.28) r.own.emissive.set("#ddd8ce");
   for (const m of r.materials) {
     if (m !== r.own) {
       m.emissive.copy(r.own.emissive);
@@ -202,13 +261,19 @@ export function disposeImportedGhost(model) {
   if (model.userData.requestedGhost) model.userData.disposed = true;
   if (!model.userData.importedGhost) return false;
   model.userData.disposed = true;
+  model.userData.mixer?.stopAllAction();
+  if (model.userData.mixer)
+    model.userData.mixer.uncacheRoot(model.userData.rigModel);
+  const skeletons = new Set();
   const materials = new Set();
   model.traverse((m) => {
     if (!m.isMesh) return;
+    if (m.isSkinnedMesh) skeletons.add(m.skeleton);
     m.geometry.dispose();
     for (const mat of Array.isArray(m.material) ? m.material : [m.material])
       materials.add(mat);
   });
   materials.forEach((m) => m.dispose());
+  skeletons.forEach((s) => s.dispose());
   return true;
 }

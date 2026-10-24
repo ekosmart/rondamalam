@@ -132,6 +132,16 @@ export const ZONES = [
 ];
 export const POSTS = patrolPosts(1);
 export const GHOSTS = [
+  { id: "suster-ngesot", name: "Suster Ngesot", region: "Jawa · UKS Sekolah Rakyat", element: "Gaib", kind: "crawler", color: "#c5d6d2", hp: 140, x: -72, z: 88, radius: 28,
+    story: "Dari ruang UKS yang gelap terdengar gesekan seragam dan tangis tertahan." },
+  { id: "kappa", name: "Kappa", region: "Jepang · Sungai Sukarame", element: "Air", kind: "beast", color: "#72956a", hp: 180, x: 155, z: -235, radius: 45, global: true, amphibious: true,
+    story: "Muncul di sungai pada malam Kliwon dan naik ke darat untuk menculik pemancing. Kalahkan atau tangkap Kappa untuk membebaskan korbannya sebelum fajar." },
+  { id: "skeleton", name: "Skeleton", region: "Portal Kliwon", element: "Tanah", kind: "mummy", color: "#d6cfb3", hp: 165, x: -108, z: -211, radius: 30, global: true,
+    story: "Gemertak tulang mengikuti retakan portal, berpindah ke bekas sarang roh lokal." },
+  { id: "slender-man", name: "Slender Man", region: "Portal Kliwon", element: "Gaib", kind: "tall", color: "#3e424d", hp: 235, x: -220, z: -85, radius: 32, global: true,
+    story: "Sosok tanpa wajah menjulang di jalan sunyi saat roh lokal meninggalkan desa." },
+  { id: "biarawati-iblis", name: "Biarawati Iblis", region: "Portal Kliwon", element: "Gaib", kind: "mage", color: "#393d43", hp: 210, x: 29, z: -179, radius: 30, global: true,
+    story: "Lantunan sumbang memandu sosok berjubah dari portal ke penjuru kampung." },
   {
     id: "wewe-gombel", name: "Wewe Gombel", region: "Jawa · Kebun tua utara kampung",
     element: "Gaib", kind: "beast", color: "#746253", hp: 135, power: 17,
@@ -506,6 +516,10 @@ export const MOUNTS = [
     color: "#a04f43",
   },
 ];
+MOUNTS.push(
+  {id:"horse",name:"Kuda Peternakan",speed:28,cost:360,color:"#916747",desc:"Kuda Pak Mulyono untuk perjalanan darat. B untuk naik atau turun."},
+  {id:"tractor",name:"Traktor Mulyono",speed:19,cost:620,color:"#b75538",desc:"Traktor diesel untuk menjelajah jalan desa. B untuk mengemudi atau turun; tidak dapat terbang."},
+);
 export const NPCS = [
   {
     id: "pakrt",
@@ -565,7 +579,7 @@ export const NPCS = [
     quest: "forge",
     night: true,
     day: true,
-    line: "Besi saja tidak cukup. Pusaka perlu niat, dan sedikit sari gaib. Tempa satu pusaka di meja pos ronda.",
+    line: "Besi saja tidak cukup. Pusaka perlu niat, dan sedikit sari gaib. Tempa satu pusaka di meja pusaka Kopdes.",
   },
   {
     id: "lurah",
@@ -671,7 +685,7 @@ export const QUESTS = [
     id: "forge",
     name: "Besi yang punya nama",
     description:
-      "Tempa satu pusaka baru di pos ronda dan bicara dengan Empu Jaya.",
+      "Tempa satu pusaka baru di Kopdes dan bicara dengan Empu Jaya.",
     target: 1,
     stat: "crafted",
     coins: 110,

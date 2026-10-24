@@ -24,12 +24,13 @@ try {
     g.renderer.shadowMap.enabled = false;
     g.audio.setEnabled(false);
     g.state.data.time = 1200;
+    g.state.data.night = 2;
     g.weather.set("clear", false);
     await Promise.all(g.enemies.map((e) => e.model.userData.ready));
     g.updateEnemies(0);
   });
   await check(
-    "twelve imported ghosts load, animate locally and retain individual materials",
+    "24 imported ghosts load, animate locally and retain individual materials",
     async () => {
       const { GHOST_ASSETS } = await import("/src/ghost-assets.js");
       const { animateFolkloreGhost } = await import("/src/folklore-models.js");
@@ -38,6 +39,8 @@ try {
           (e) => e.def.id === id && !e.raid,
         );
         if (copies.length < 2) throw Error(`${id}: missing copies`);
+        __ronda.state.data.night = copies[0].def.global ? 4 : 2;
+        __ronda.updateEnemies(0);
         const m = copies[0].model,
           r = m.userData;
         if (
@@ -53,10 +56,10 @@ try {
           rotation = m.quaternion.clone(),
           scale = m.scale.clone();
         animateFolkloreGhost(m, 1, { moving: true });
-        const before = r.body.rotation.toArray().join();
+        const before = r.mixer.time;
         animateFolkloreGhost(m, 2, { moving: true, attack: 0.5, hit: 0.1 });
         if (
-          before === r.body.rotation.toArray().join() ||
+          before === r.mixer.time ||
           !m.position.equals(position) ||
           !m.quaternion.equals(rotation) ||
           !m.scale.equals(scale)
@@ -162,14 +165,15 @@ try {
   );
   await check("raid spirits use imported models and animations", async () => {
     const g = __ronda;
+    g.life.syncRaids();
     g.life.dispatch(0);
     const e = g.enemies.find((e) => e.raid);
     await e.model.userData.ready;
     g.life.update(0.016, 2);
-    const before = e.model.userData.body.rotation.z;
+    const before = e.model.userData.mixer.time;
     g.life.update(0.016, 3);
     return (
-      e.model.userData.loaded && before !== e.model.userData.body.rotation.z
+      e.model.userData.loaded && before !== e.model.userData.mixer.time
     );
   });
   await page.evaluate(() => {
@@ -185,9 +189,9 @@ try {
     ),
   );
   await check(
-    "23 portraits retain collected glow and uncollected dim state",
+    "28 portraits retain collected glow and uncollected dim state",
     () =>
-      document.querySelectorAll(".ghost-card").length === 23 &&
+      document.querySelectorAll(".ghost-card").length === 28 &&
       getComputedStyle(
         document.querySelector(".ghost-card.owned .ghost-portrait"),
       ).filter.includes("drop-shadow") &&

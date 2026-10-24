@@ -6,7 +6,7 @@ import { distance, clamp } from "./state.js";
 import { makeGhost, animateHuman, orb, glow, mesh } from "./models.js";
 import { makeResident, makeBuffalo } from "./expansion-models.js";
 import { animateFolkloreGhost } from "./folklore-models.js";
-import { GHOST_ASSETS } from "./ghost-assets.js";
+import { GHOST_ASSETS, disposeImportedGhost } from "./ghost-assets.js";
 
 export class VillageLife {
   constructor(game) {
@@ -190,6 +190,7 @@ export class VillageLife {
     if (this.currentNight === d.night) return;
     for (const e of g.enemies.filter((e) => e.raid)) {
       e.model.removeFromParent();
+      disposeImportedGhost(e.model);
     }
     g.enemies = g.enemies.filter((e) => !e.raid);
     this.currentNight = d.night;
@@ -339,7 +340,7 @@ export class VillageLife {
     this.syncRaids();
     const day = !g.state.isNight;
     for (const n of this.actors) {
-      if (n.incidentUnavailable || n.witchCursed) continue;
+      if (n.kappaCaptive || n.incidentUnavailable || n.witchCursed) continue;
       n.active = day || n.def.night;
       n.model.visible = n.active && distance(n.model.position, d) < 115;
       if (!n.active) continue;
@@ -385,7 +386,7 @@ export class VillageLife {
           ? Math.PI / 2
           : -Math.PI / 2;
     });
-    if (g.state.isNight && !d.raid.suppressed) {
+    if (g.state.isNight && !g.state.isKliwon && !d.raid.suppressed) {
       const minutes = (d.time - 1080 + 1440) % 1440;
       for (let i = 0; i < 4; i++) if (minutes >= 90 + i * 38) this.dispatch(i);
     }
@@ -393,7 +394,7 @@ export class VillageLife {
       scaleEnemy(e, d.level);
       if (e.heldByPlayer) continue;
       const r = e.raid;
-      e.active = g.state.isNight && r.status === "active" && !d.raid.suppressed;
+      e.active = g.state.isNight && !g.state.isKliwon && r.status === "active" && !d.raid.suppressed;
       e.model.visible = e.active;
       if (!e.active) continue;
       const destination = RAID_TARGETS[r.index],

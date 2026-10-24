@@ -1,3 +1,4 @@
+import { purchaseAtKopdes } from "./kopdes-helper.mjs";
 import { chromium } from "@playwright/test";
 import assert from "node:assert/strict";
 const b = await chromium.launch({
@@ -74,6 +75,7 @@ try {
     await move(x, z);
     await p.keyboard.press("KeyE");
   }
+  await purchaseAtKopdes(p,"mount","mecha");
   await move(227, -212);
   await npc("william");
   await p.locator('[data-action="claim-quest"]').click();
@@ -226,7 +228,7 @@ try {
     g.state.data.coins = 3000;
     g.state.data.x = 0;
     g.state.data.z = 12;
-    g.action("buy-mount", { id: "mecha" });
+
   });
   await move(227, -212);
   await npc("william");

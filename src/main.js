@@ -1,4 +1,5 @@
 import { MagicEvent } from "./magic/event.js";
+import { Kopdes } from "./kopdes.js";
 import { LaserEffects } from "./laser-effects.js";
 import "./joystick.css";
 import { VillageWeather } from "./weather.js";
@@ -8,7 +9,8 @@ import { Expeditions } from "./expeditions.js";
 import { SpiritRealm } from "./spirit-realm.js";
 import { Coast } from "./coast.js";
 import { animateFolkloreGhost } from "./folklore-models.js";
-import { disposeImportedGhost, GHOST_ASSETS } from "./ghost-assets.js";
+import { animateImportedGhost, disposeImportedGhost, GHOST_ASSETS } from "./ghost-assets.js";
+import { kliwonActive, ghostScheduled, distributeKliwon, amphibiousMove, updateKappa, releaseKappa } from "./ghost-encounters.js";
 import { WORLD_BOUNDS } from "./coast-rules.js";
 import "./frontier.css";
 import { PWAClient } from "./pwa-client.js";
@@ -287,6 +289,7 @@ class Game {
     this.weather = new VillageWeather(this);
     this.coast = new Coast(this);
     this.magic = new MagicEvent(this);
+    this.kopdes = new Kopdes(this);
     this.enemies.forEach((e) => scaleEnemy(e, this.state.data.level));
     this.bindControls();
     this.applyQuality();
@@ -415,7 +418,8 @@ class Game {
           copy >= regularCount
             ? sites[copy - regularCount]
             : { x: def.x, z: def.z };
-        if (copy > 0 && copy < regularCount) {
+        if (def.amphibious) home = {x:155,z:[-235,-35,195][copy % 3]};
+        if (!def.amphibious && copy > 0 && copy < regularCount) {
           for (let attempt = 0; attempt < 80; attempt++) {
             const a = copy * 2.4 + attempt * 2.399,
               radius = Math.min(def.radius - 2, 8 + (attempt % 6) * 2);
@@ -686,6 +690,7 @@ class Game {
   }
   action(action, args = {}) {
     if (this.pwa?.action(action)) return;
+    if (this.started && this.kopdes?.action(action,args)) return;
     if (this.started && this.magic?.action(action, args)) return;
     if (this.started && this.spirit?.action(action, args)) return;
     if (this.started && this.coast?.action(action, args)) return;
@@ -1177,7 +1182,7 @@ class Game {
     const d = this.state.data,
       candidates = [];
     for (const n of this.npcs)
-      if (n.active && !n.witchCursed && !n.incidentUnavailable && distance(d, n.def) < 4.4)
+      if (n.active && !n.kappaCaptive && !n.witchCursed && !n.incidentUnavailable && distance(d, n.def) < 4.4)
         candidates.push({
           dist: distance(d, n.def),
           type: "npc",
@@ -1206,7 +1211,7 @@ class Game {
       candidates.push({
         dist: distance(d, { x: -8, z: 2 }) + 0.5,
         type: "camp",
-        label: "Pos ronda · Tempa & istirahat",
+        label: "Pos ronda · Koleksi & istirahat",
       });
     if (distance(d, { x: 211, z: -123 }) < 5)
       candidates.push({
@@ -1410,7 +1415,7 @@ class Game {
     if (this.cooldowns.bottle > 0) return;
     const d = this.state.data;
     if (d.bottles <= 0) {
-      this.ui.toast("Botol habis. Racik lagi di pos ronda.", "error");
+      this.ui.toast("Botol habis. Racik lagi di Kopdes.", "error");
       return;
     }
     const eligible = this.nearby(18, true).filter(
@@ -1480,12 +1485,14 @@ class Game {
     if (e.hp <= 0) this.defeat(e, false, source);
   }
   defeat(e, caught = false, source = "player") {
+    releaseKappa(this, e, true);
     if (e.model?.userData.folklore) {
       const echo = makeGhost(e.def);
       echo.position.copy(e.pos);
       echo.rotation.copy(e.model.rotation);
       this.scene.add(echo);
-      (this.ghostDepartures ??= []).push({ model: echo, time: 0, caught });
+      (this.ghostDepartures ??= []).push({ model: echo, time: 0, caught, duration: caught ? .65 : (echo.userData.deathDuration || 1.6) + .35 });
+      if (!caught) animateImportedGhost(echo, 0, {dead:true, dt:0});
       this.audio.ghostVoices.play(e.def.id, {
         distance: distance(e.pos, this.state.data), event: "capture",
       });
@@ -1636,8 +1643,9 @@ class Game {
         d.x = clamp(nx, WORLD_BOUNDS.minX + 2, WORLD_BOUNDS.maxX - 2);
         d.z = clamp(nz, WORLD_BOUNDS.minZ + 2, WORLD_BOUNDS.maxZ - 2);
       } else {
-        if (this.world.canMove(nx, d.z)) d.x = nx;
-        if (this.world.canMove(d.x, nz)) d.z = nz;
+        const radius = d.riding && d.mount === "tractor" ? 1.35 : d.riding && d.mount === "horse" ? .75 : .55;
+        if (this.world.canMove(nx, d.z, radius)) d.x = nx;
+        if (this.world.canMove(d.x, nz, radius)) d.z = nz;
       }
       this.footTimer -= dt;
       if (this.footTimer < 0) {
@@ -1663,6 +1671,8 @@ class Game {
       );
     } else this.altitude = 0;
     const groundY = this.isFlying ? 0 : this.world.groundHeight(d.x, d.z);
+    this.audio.farm.motor(d.riding && d.mount === "tractor", moving);
+    if (d.riding && d.mount === "horse") this.audio.farm.play("horse",0);
     this.player.visible = !(d.riding && ["mecha", "ufo"].includes(d.mount));
     this.player.position.set(
       d.x,
@@ -1680,6 +1690,10 @@ class Game {
           : 0),
       d.z,
     );
+    if (d.riding && ["horse","tractor"].includes(d.mount)) {
+      const seat = this.bike.userData.mountSeat || {y:1.2,z:-.2};
+      this.player.position.set(d.x+Math.sin(this.facing)*seat.z,groundY+seat.y,d.z+Math.cos(this.facing)*seat.z);
+    }
     const angle = Math.atan2(
       Math.sin(this.facing - this.player.rotation.y),
       Math.cos(this.facing - this.player.rotation.y),
@@ -1693,10 +1707,11 @@ class Game {
     if (d.riding && d.mount === "naga")
       this.player.userData.legs.forEach((leg) => (leg.rotation.x = -1.05));
     this.player.userData.legs.forEach((leg, i) => {
-      const horseback = d.riding && d.mount === "sembrani";
+      const horseback = d.riding && ["sembrani","horse"].includes(d.mount);
       leg.rotation.z = horseback ? (i ? 1 : -1) * 0.4 : 0;
       if (horseback) leg.rotation.x = -0.35;
       if (d.riding && d.mount === "gyroball") leg.rotation.x = -1.15;
+      if (d.riding && d.mount === "tractor") { leg.rotation.x = -1.1; leg.rotation.z = (i?1:-1)*.12; }
     });
     this.bike.position.set(d.x, this.altitude + groundY, d.z);
     animateMount(this.bike, d.mount, this.elapsed, moving);
@@ -1798,7 +1813,7 @@ class Game {
         nx = e.pos.x + Math.sin(a) * speed * dt,
         nz = e.pos.z + Math.cos(a) * speed * dt;
       if (Math.hypot(nx, nz) < SAFE_RADIUS + 1) continue;
-      if (this.world.canMove(nx, nz, 0.42)) {
+      if (e.def?.amphibious ? amphibiousMove(this.world, nx, nz) : this.world.canMove(nx, nz, 0.42)) {
         e.pos.x = nx;
         e.pos.z = nz;
         e.model.rotation.y = a;
@@ -1808,9 +1823,22 @@ class Game {
   }
   updateEnemies(dt) {
     const d = this.state.data;
+    if (kliwonActive(this.state) && this.kliwonNight !== d.night) {
+      distributeKliwon(this);
+      this.kliwonNight = d.night;
+      if (this.started) this.ui.toast("Malam Kliwon: roh lokal menyingkir. Tamu portal menyebar ke seluruh desa.");
+    }
     for (const e of this.enemies) {
       if (e.witch) continue;
       scaleEnemy(e, d.level);
+      if (!e.human && !e.incident && !e.dino && !ghostScheduled(e.def, this.state)) {
+        e.active = false;
+        e.model.visible = false;
+        releaseKappa(this, e);
+        if (this.lockedTarget === e) this.lockedTarget = null;
+        continue;
+      }
+      if (e.heldByPlayer) releaseKappa(this, e, true);
       if (e.raid || e.incident || e.dino || e.heldByPlayer) continue;
       if (e.respawn > 0) {
         e.respawn -= dt;
@@ -1823,10 +1851,10 @@ class Game {
         ? this.state.isNight
           ? e.def.night
           : e.def.day
-        : this.state.isNight && (!e.def.global || this.state.isKliwon);
+        : ghostScheduled(e.def, this.state);
       e.active = scheduled && e.respawn <= 0 && e.hp > 0;
       e.model.visible = e.active;
-      if (!e.active) continue;
+      if (!e.active) { releaseKappa(this, e); continue; }
       e.attackTimer -= dt;
       e.hit = Math.max(0, e.hit - dt);
       const pd = distance(e.pos, d),
@@ -1845,7 +1873,9 @@ class Game {
         this.steer(e, landing.x, landing.z, 3, dt);
       }
       let moving = false;
-      if (
+      if (e.def.amphibious && updateKappa(this, e, dt)) {
+        moving = true;
+      } else if (
         !this.isSafe &&
         ((this.altitude < 6 && hd < leash && pd < 25) || pursuing)
       ) {
@@ -1941,7 +1971,7 @@ class Game {
               1.8,
               dt,
             )
-          : e.def.id === "pocong"
+          : e.def.amphibious || gd.importedGhost === "suster-ngesot" || e.def.id === "pocong"
             ? this.world.groundHeight(e.pos.x, e.pos.z)
             : [
                   "boar",
@@ -1984,7 +2014,7 @@ class Game {
       }
     }
     for (const n of this.npcs) {
-      if (n.ambient || n.witchCursed || n.incidentUnavailable) continue;
+      if (n.ambient || n.kappaCaptive || n.witchCursed || n.incidentUnavailable) continue;
       n.active = this.state.isNight ? n.def.night : n.def.day;
       n.model.visible = n.active;
       if (n.active) {
@@ -2143,6 +2173,8 @@ class Game {
     this.lastTime = t;
     if (document.hidden) return;
     this.elapsed += dt;
+    if (this.kopdes?.active) { this.kopdes.frame(dt,this.elapsed); return; }
+    if (this.magic?.active || this.spirit?.active || this.expeditions?.active) this.audio.farm.stop();
     if (this.magic?.active) { this.magic.frame(dt, this.elapsed); return; }
     if (this.spirit?.active) {
       this.audio.ghostVoices.pause(true);
@@ -2157,15 +2189,22 @@ class Game {
       return;
     }
     const running = this.started && !this.ui.panel && this.deathTimer <= 0;
+    if (!running) this.audio.farm.stop();
     this.audio.ghostVoices.pause(!running);
     this.audio.setWeather(this.weather.def, !running);
     if (running) {
       for (const echo of this.ghostDepartures || []) {
         echo.time += dt;
-        const f = Math.min(1, echo.time / .65);
-        echo.model.scale.setScalar(Math.max(.01, 1 - f));
-        echo.model.rotation.y += dt * 8;
-        echo.model.position.y += dt * (echo.caught ? 2 : 1);
+        const duration = echo.duration || .65;
+        const f = Math.min(1, echo.time / duration);
+        if (echo.caught) {
+          echo.model.scale.setScalar(Math.max(.01, 1 - f));
+          echo.model.rotation.y += dt * 8;
+          echo.model.position.y += dt * 2;
+        } else {
+          animateImportedGhost(echo.model, echo.time, {dead:true, dt});
+          echo.model.scale.setScalar(Math.max(.01, Math.min(1,(duration-echo.time)/.35)));
+        }
         if (f === 1) {
           echo.model.removeFromParent();
           if (disposeImportedGhost(echo.model)) continue;
@@ -2176,7 +2215,7 @@ class Game {
           materials.forEach(m => m.dispose());
         }
       }
-      this.ghostDepartures = (this.ghostDepartures || []).filter(e => e.time < .65);
+      this.ghostDepartures = (this.ghostDepartures || []).filter(e => e.time < (e.duration || .65));
       const change = this.sports.active ? null : this.state.advance(dt);
       if (change) {
         this.ui.toast(

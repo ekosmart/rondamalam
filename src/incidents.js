@@ -313,6 +313,7 @@ export class Incidents {
     for (const n of g.npcs) {
       if (
         !n.active ||
+        n.kappaCaptive ||
         n.witchCursed ||
         n.incidentUnavailable ||
         [

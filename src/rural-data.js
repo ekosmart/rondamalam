@@ -17,4 +17,9 @@ export const FARM_ANIMALS = [
   { kind: "sheep", name: "Domba Awan", x: -151, z: 180 },
   { kind: "sheep", name: "Domba Kapas", x: -146, z: 185 },
   { kind: "dog", name: "Anjing Penjaga Bintang", x: -102, z: 188 },
+  { kind: "duck", name: "Bebek Kuning", x: -155, z: 155 },
+  { kind: "duck", name: "Bebek Wening", x: -150, z: 156 },
+  { kind: "goat", name: "Kambing Kacang", x: -119, z: 171 },
+  { kind: "goat", name: "Kambing Belang", x: -113, z: 174 },
+  { kind: "pig", name: "Babi Gembul", x: -94, z: 157 },
 ];

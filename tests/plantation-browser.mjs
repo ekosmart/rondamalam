@@ -205,7 +205,7 @@ try {
   });
   await check("kuntilanak patrols bamboo tops at night", () => {
     const g = __ronda;
-    Object.assign(g.state.data, { time: 1320, x: 0, z: 0 });
+    Object.assign(g.state.data, { night: 2, time: 1320, x: 0, z: 0 });
     for (let i = 0; i < 100; i++) {
       g.elapsed += 0.05;
       g.updateEnemies(0.05);

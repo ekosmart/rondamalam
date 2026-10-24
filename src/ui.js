@@ -235,7 +235,7 @@ export class UI {
       d = st.data,
       safe = this.game.isSafe;
     if (type === "help")
-      return `<div class="note-box"><strong>Kabar baru · Sungai, keluarga & langit Sukarame</strong><p>Kopdes Bu Ratih (74, −16) sekarang menjual joran, umpan, kapsul dan bahan crafting. Dekati tepi sungai, mata air, telaga ladang, atau saluran sawah: E melempar, tunggu sambaran, E menarik. Bergerak membatalkan pancing. Panen jagung/gandum di selatan; jual panen dan ikan di Kopdes. Kuda Sembrani kini mendukung Spasi dan Q pusaka dari udara tanpa turun.</p><p>Mas Elon (66, 207) membuka Space Z di selatan. Terima bekal kapsul, lemahkan dua alien darat hingga HP ≤25%, klik dan R untuk menangkap. Divisi Z ikut menjaga desa dan menahan alien di ruang riset. Setelah misi selesai, naik roket untuk menjelajahi tiga lokasi antariksa: WASD, T/C ketinggian, Shift laju. Dekati planet, E mengambil sampel kristal. Tombol Pulang mengembalikanmu ke desa.</p><p>Meteor pada malam acak membawa empat gelombang raptor dengan T-Rex sebagai bos akhir. Buru dinosaurus pembawa tawanan atau dekati sarang barat daya (−244, 168) lalu E untuk membebaskan. Saat fajar mereka mundur. Sesudah meteor pertama, lima jenis dinosaurus jinak tinggal di wilayah terpisah; Pteranodon bersarang di pohon sawit. Temui Dr John di Sukarame Park (−230, 212), beri tiga pakan dengan E lalu klik dan R (kapsul). Dua jenis berbeda membuka GyroBall.</p><p>Rumah keluarga di samping pos ronda (15, −2) bisa dimasuki dengan E. Dekati Yuli, Aqila, Azkia, tempat tidur, atau peti untuk berinteraksi. Peti menyimpan barang dan koin; tabungan tidak terkena penalti respawn. Waktu desa berhenti selama berada di rumah atau ekspedisi. Progres tersimpan; saat membuka ulang game, kamu kembali ke desa.</p><p>Peternakan Pak Mulyono berada di barat daya (−112, 207). Terima quest, lalu rawat lima ternak berbeda dengan E untuk memperoleh Kuda Sembrani: B naik, T/C terbang. Gereja Santa Maria dengan Pastor Daniel dan biarawati berdiri di sebelah barat Masjid Raya.</p><p>Setelah quest pulang E.T. selesai, jatuhkan total tiga UFO musuh untuk membuka sinar pengangkat UFO milikmu. Klik musuh, U angkat, U lagi jatuhkan. Jatuhan dan misil mecha adalah damage fisik: tidak melukai hantu. Plasma, energi, dan pusaka tetap efektif. Semua musuh mengikuti level Hansip, termasuk bos; HP dan daya serang meningkat tanpa menyembuhkan luka saat naik level.</p><p>Pabrik Payung Korp dibuka setelah fajar pertama di timur laut. Bantu Prof William mengumpulkan tiga tabung riset untuk mendapatkan Laras Surya (Spasi tembak, Q ledakan surya). Basmi 12 zombie dan miliki Mecha Gundam untuk upgrade terbang dan misil.</p><p>Beberapa malam, sirine menandai wabah zombie; bintang jatuh menandai invasi alien. Empat gelombang, lalu bos. Jatuhkan UFO sebelum membawa sandera pergi; jatuhkan kapal induk untuk menyelamatkan semua sandera, sebelum fajar. Saat fajar zombie jadi abu dan alien kabur. Semua rumah otomatis pulih lewat gotong royong; warga dan ternak kembali sehat tanpa biaya. Santri menjaga masjid. Warga terinfeksi perlu dilumpuhkan lalu diobati dengan E; racik serum di William. Pertolongan dengan serum saat malam tetap memberi progres penyelamatan.</p><p>E.T. bersembunyi di sudut tenggara. Cari tiga komponen, kembalikan kepadanya untuk memperoleh sel bintang, aktifkan suar di sebelah UFO rusak, lalu terima UFO milikmu.</p><p>Klik tubuh hantu untuk mengunci target, X melepas, Spasi menyerang. Lima tiang aktif berganti setiap malam; lihat M. Kiai Hasan di Masjid Raya memberi misi menghentikan kiriman Ki Wulung di barat laut. Padamkan rumah terbakar dengan E.</p><p>Temui Bang Jalu di barat lapangan untuk Piala Tarkam (Spasi tembak, Q oper) dan Dimas di simpang dekat pos untuk balap dua lap. Naga Geni (700 koin) dan Mecha Gundam (950 koin) tersedia di Pos Ronda → Tunggangan. Naga: T naik, C turun, B mendarat; api otomatis pada target. Mecha: kebal sihir, Spasi plasma.</p></div><div class="help-intro">${icon("moon", 42)}<p>Segel Mustika Bumi telah pecah. Sukarame memerlukan penjaga.<br/>Bunyikan lima tiang, redam kejahatan, dan jinakkan roh untuk memulihkan segel.</p></div><div class="help-grid">${[
+      return `<div class="note-box"><strong>Kabar baru · Sungai, keluarga & langit Sukarame</strong><p>Kopdes Bu Ratih (74, −16) sekarang menjual joran, umpan, kapsul dan bahan crafting. Dekati tepi sungai, mata air, telaga ladang, atau saluran sawah: E melempar, tunggu sambaran, E menarik. Bergerak membatalkan pancing. Panen jagung/gandum di selatan; jual panen dan ikan di Kopdes. Kuda Sembrani kini mendukung Spasi dan Q pusaka dari udara tanpa turun.</p><p>Mas Elon (66, 207) membuka Space Z di selatan. Terima bekal kapsul, lemahkan dua alien darat hingga HP ≤25%, klik dan R untuk menangkap. Divisi Z ikut menjaga desa dan menahan alien di ruang riset. Setelah misi selesai, naik roket untuk menjelajahi tiga lokasi antariksa: WASD, T/C ketinggian, Shift laju. Dekati planet, E mengambil sampel kristal. Tombol Pulang mengembalikanmu ke desa.</p><p>Meteor pada malam acak membawa empat gelombang raptor dengan T-Rex sebagai bos akhir. Buru dinosaurus pembawa tawanan atau dekati sarang barat daya (−244, 168) lalu E untuk membebaskan. Saat fajar mereka mundur. Sesudah meteor pertama, lima jenis dinosaurus jinak tinggal di wilayah terpisah; Pteranodon bersarang di pohon sawit. Temui Dr John di Sukarame Park (−230, 212), beri tiga pakan dengan E lalu klik dan R (kapsul). Dua jenis berbeda membuka GyroBall.</p><p>Rumah keluarga di samping pos ronda (15, −2) bisa dimasuki dengan E. Dekati Yuli, Aqila, Azkia, tempat tidur, atau peti untuk berinteraksi. Peti menyimpan barang dan koin; tabungan tidak terkena penalti respawn. Waktu desa berhenti selama berada di rumah atau ekspedisi. Progres tersimpan; saat membuka ulang game, kamu kembali ke desa.</p><p>Peternakan Pak Mulyono berada di barat daya (−112, 207). Terima quest, lalu rawat lima ternak berbeda dengan E untuk memperoleh Kuda Sembrani: B naik, T/C terbang. Gereja Santa Maria dengan Pastor Daniel dan biarawati berdiri di sebelah barat Masjid Raya.</p><p>Setelah quest pulang E.T. selesai, jatuhkan total tiga UFO musuh untuk membuka sinar pengangkat UFO milikmu. Klik musuh, U angkat, U lagi jatuhkan. Jatuhan dan misil mecha adalah damage fisik: tidak melukai hantu. Plasma, energi, dan pusaka tetap efektif. Semua musuh mengikuti level Hansip, termasuk bos; HP dan daya serang meningkat tanpa menyembuhkan luka saat naik level.</p><p>Pabrik Payung Korp dibuka setelah fajar pertama di timur laut. Bantu Prof William mengumpulkan tiga tabung riset untuk mendapatkan Laras Surya (Spasi tembak, Q ledakan surya). Basmi 12 zombie dan miliki Mecha Gundam untuk upgrade terbang dan misil.</p><p>Beberapa malam, sirine menandai wabah zombie; bintang jatuh menandai invasi alien. Empat gelombang, lalu bos. Jatuhkan UFO sebelum membawa sandera pergi; jatuhkan kapal induk untuk menyelamatkan semua sandera, sebelum fajar. Saat fajar zombie jadi abu dan alien kabur. Semua rumah otomatis pulih lewat gotong royong; warga dan ternak kembali sehat tanpa biaya. Santri menjaga masjid. Warga terinfeksi perlu dilumpuhkan lalu diobati dengan E; racik serum di William. Pertolongan dengan serum saat malam tetap memberi progres penyelamatan.</p><p>E.T. bersembunyi di sudut tenggara. Cari tiga komponen, kembalikan kepadanya untuk memperoleh sel bintang, aktifkan suar di sebelah UFO rusak, lalu terima UFO milikmu.</p><p>Klik tubuh hantu untuk mengunci target, X melepas, Spasi menyerang. Lima tiang aktif berganti setiap malam; lihat M. Kiai Hasan di Masjid Raya memberi misi menghentikan kiriman Ki Wulung di barat laut. Padamkan rumah terbakar dengan E.</p><p>Temui Bang Jalu di barat lapangan untuk Piala Tarkam (Spasi tembak, Q oper) dan Dimas di simpang dekat pos untuk balap dua lap. Naga Geni (700 koin) dan Mecha Gundam (950 koin) dipamerkan dan dijual di dalam Kopdes. Kuda peternakan (360 koin) dan traktor (620 koin) juga tersedia di sana. Dekati label harga dan tekan E. Naga: T naik, C turun, B mendarat; api otomatis pada target. Mecha: kebal sihir, Spasi plasma.</p></div><div class="help-intro">${icon("moon", 42)}<p>Segel Mustika Bumi telah pecah. Sukarame memerlukan penjaga.<br/>Bunyikan lima tiang, redam kejahatan, dan jinakkan roh untuk memulihkan segel.</p></div><div class="help-grid">${[
         ["W A S D / ↑ ↓ ← →", "Berjalan mengikuti arah kamera"],
         ["SHIFT", "Lari · menghabiskan stamina"],
         ["Klik musuh / X", "Kunci / lepas target"],
@@ -299,9 +299,9 @@ export class UI {
         .join("")}</div>`;
     if (type === "camp") {
       if (!safe)
-        return `<div class="empty-state">${icon("home", 50)}<h3>Cahaya pos menunggumu.</h3><p>Crafting, upgrade, dan istirahat tersedia saat berada di area aman pos ronda.</p>${button("home-waypoint", "Tandai jalan pulang " + icon("arrow", 17), "primary")}</div>`;
+        return `<div class="empty-state">${icon("home", 50)}<h3>Cahaya pos menunggumu.</h3><p>Koleksi dan istirahat tersedia di pos ronda. Pembelian, racikan, dan upgrade berada di dalam Kopdes.</p>${button("home-waypoint", "Tandai jalan pulang " + icon("arrow", 17), "primary")}</div>`;
       const menu = `<div class="camp-intro">${icon("shield", 19)} <span>Dalam lindungan. Pulihkan tubuh, siapkan malam berikutnya.</span></div><div class="subtabs">${[
-        ["forge", "Tempa pusaka"],
+        ["forge", "Koleksi pusaka"],
         ["upgrade", "Kemampuan"],
         ["mounts", "Tunggangan"],
         ["rest", "Istirahat"],
@@ -315,41 +315,10 @@ export class UI {
           ),
         )
         .join("")}</div>`;
-      if (this.currentTab === "forge")
-        return (
-          menu +
-          `<div class="bottle-craft"><div>${icon("bottle", 30)}<span><strong>Racik 3 botol kaca segel</strong><small>2 kaca · 1 daun obat · 15 koin</small></span></div>${button("craft", "Racik " + icon("arrow", 15), "pill-button", `data-id="bottle" ${st.afford({ glass: 2, herb: 1, coins: 15 }) ? "" : "disabled"}`)}</div><div class="item-grid">${WEAPONS.map((w) => this.weaponCard(w, true)).join("")}</div>`
-        );
-      if (this.currentTab === "upgrade")
-        return (
-          menu +
-          `<div class="item-grid">${[
-            ["health", "heart", "Raga tangguh", "+25 maksimum HP per tingkat"],
-            [
-              "strength",
-              "sword",
-              "Tangan terlatih",
-              "+6 serangan pusaka per tingkat",
-            ],
-            ["stamina", "bolt", "Napas panjang", "+20 stamina per tingkat"],
-            [
-              "ward",
-              "shield",
-              "Pagar batin",
-              "Mengurangi kerusakan 10% per tingkat",
-            ],
-          ]
-            .map(
-              ([key, ic, n, desc]) =>
-                `<div class="item-card">${icon(ic, 30)}<span class="item-tag">TINGKAT ${d.upgrades[key]} / 5</span><h3>${n}</h3><p>${desc}</p><div class="upgrade-dots">${Array.from({ length: 5 }, (_, i) => `<i class="${i < d.upgrades[key] ? "filled" : ""}"></i>`).join("")}</div>${button("upgrade", d.upgrades[key] >= 5 ? "Maksimal" : `${90 + d.upgrades[key] * 70} koin · Tingkatkan`, "pill-button", `data-id="${key}" ${d.upgrades[key] >= 5 || d.coins < 90 + d.upgrades[key] * 70 ? "disabled" : ""}`)}</div>`,
-            )
-            .join("")}</div>`
-        );
-      if (this.currentTab === "mounts")
-        return (
-          menu +
-          `<div class="item-grid">${MOUNTS.map((m) => `<div class="item-card">${icon(m.icon || "bike", 36)}<span class="item-tag">${m.speed} M/DETIK</span><h3>${m.name}</h3><p>${m.desc}</p>${button("buy-mount", d.mount === m.id ? "Sedang dipakai" : d.mounts.includes(m.id) ? "Gunakan" : m.questOnly ? `Hadiah quest ${m.questNpc || "E.T."}` : `${m.cost} koin · Koleksi`, "pill-button", `data-id="${m.id}" ${d.mount === m.id || (!d.mounts.includes(m.id) && (m.questOnly || d.coins < m.cost)) ? "disabled" : ""}`)}</div>`).join("")}</div>`
-        );
+      const storeLink = `<div class="note-box">Pembelian, racikan, dan pelatihan tersedia di dalam Kopdes. Di pos kamu bisa melihat koleksi dan memakai perlengkapan.${button("frontier-waypoint", "Tandai Kopdes", "pill-button", 'data-id="kopdes-shop"')}</div>`;
+      if (this.currentTab === "forge") return menu + storeLink + `<div class="item-grid">${WEAPONS.map(w => this.weaponCard(w, false)).join("")}</div>`;
+      if (this.currentTab === "upgrade") return menu + storeLink + `<div class="item-grid">${["health","strength","stamina","ward"].map((key,i)=>`<div class="item-card"><h3>${["Raga tangguh","Tangan terlatih","Napas panjang","Pagar batin"][i]}</h3><p>Tingkat ${d.upgrades[key]} / 5</p></div>`).join("")}</div>`;
+      if (this.currentTab === "mounts") return menu + storeLink + `<div class="item-grid">${MOUNTS.map(m=>`<div class="item-card">${icon(m.icon||"bike",36)}<h3>${m.name}</h3><p>${m.desc}</p><small>${d.mounts.includes(m.id)?"Milikmu":m.questOnly?"Hadiah quest":`${m.cost} koin di Kopdes`}</small>${d.mounts.includes(m.id)?button("equip-mount",d.mount===m.id?"Sedang dipakai":"Gunakan","pill-button",`data-id="${m.id}" ${d.mount===m.id?"disabled":""}`):""}</div>`).join("")}</div>`;
       return (
         menu +
         `<div class="rest-card">${icon(st.isNight ? "sun" : "moon", 52)}<h3>${st.isNight ? "Tunggu fajar datang." : "Bersiap untuk malam berikutnya."}</h3><p>Istirahat mengisi HP dan stamina hingga penuh.<br/>${st.isNight ? "Waktu maju ke pukul 06:30. Ronda yang belum selesai ditinggalkan." : "Waktu maju ke pukul 18:30. Lima tiang harus dibunyikan kembali."}</p>${button("rest", st.isNight ? "Istirahat hingga pagi" : "Istirahat hingga malam", "primary")}</div>`
@@ -391,7 +360,7 @@ export class UI {
   weaponCard(w, craft) {
     const d = this.game.state.data,
       owned = d.weapons.includes(w.id);
-    return `<div class="item-card ${d.weapon === w.id ? "equipped" : ""}"><span class="item-art" style="color:${ELEMENTS[w.element]}">${icon(w.icon, 34)}</span><span class="item-tag">${w.element} · ${w.damage} ATK</span><h3>${w.name}</h3><p>${w.desc}</p><small class="cost">${owned ? "Milikmu" : w.questOnly ? `Hadiah quest ${w.questNpc || "Prof William"}` : costText(w.cost)}</small>${button(owned ? "equip-weapon" : "craft", d.weapon === w.id ? "Sedang dipakai" : owned ? "Gunakan" : w.questOnly ? `Temui ${w.questNpc || "Prof William"}` : "Tempa pusaka", "pill-button", `data-id="${w.id}" ${d.weapon === w.id || (!owned && (w.questOnly || !this.game.state.afford(w.cost))) ? "disabled" : ""}`)}</div>`;
+    return `<div class="item-card ${d.weapon === w.id ? "equipped" : ""}"><span class="item-art" style="color:${ELEMENTS[w.element]}">${icon(w.icon,34)}</span><span class="item-tag">${w.element} · ${w.damage} ATK</span><h3>${w.name}</h3><p>${w.desc}</p><small class="cost">${owned?"Milikmu":w.questOnly?`Hadiah quest ${w.questNpc||"warga"}`:costText(w.cost)+" · Kopdes"}</small>${owned?button("equip-weapon",d.weapon===w.id?"Sedang dipakai":"Gunakan","pill-button",`data-id="${w.id}" ${d.weapon===w.id?"disabled":""}`):""}</div>`;
   }
   dialogue(npc) {
     this.open("dialogue");

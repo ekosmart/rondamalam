@@ -477,7 +477,7 @@ export class MagicEvent {
     this.s.raid = null;
   }
   curse(n, type) {
-    if (this.s.cursed.length >= 6 || n.witchCursed || n.incidentUnavailable)
+    if (this.s.cursed.length >= 6 || n.kappaCaptive || n.witchCursed || n.incidentUnavailable)
       return;
     if (
       this.protection > 0 &&

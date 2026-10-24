@@ -1,4 +1,5 @@
 import { GhostVoices } from "./ghost-audio.js";
+import { FarmAudio } from "./farm-audio.js";
 export class Soundscape {
   constructor() {
     this.ctx = null;
@@ -6,6 +7,7 @@ export class Soundscape {
     this.timer = 0;
     this.ambience = null;
     this.ghostVoices = new GhostVoices(this);
+    this.farm = new FarmAudio(this);
   }
   start() {
     if (!this.ctx) {
@@ -94,6 +96,7 @@ export class Soundscape {
     );
   }
   setEnabled(on) {
+    if (!on) this.farm.stop();
     this.enabled = on;
     if (!on) {
       this.ghostVoices.stop();
